@@ -19,6 +19,8 @@ A convenient enum structure.
 
 #### Example
 
+    import com.dadrox.scuttle.Enum
+
     object Status extends Enum {
         sealed case class EnumVal private[Status] (name: String, status: Int) extends Value
     
