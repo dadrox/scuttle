@@ -28,7 +28,7 @@ object Response {
 
 /** A response monad that carries detailed failure data.
  */
-sealed abstract class Response[+A] {
+sealed abstract class Response[+A] { self =>
     def name(): String
     def isSuccess(): Boolean
     def isFail(): Boolean
@@ -60,7 +60,7 @@ sealed abstract class Response[+A] {
         case Fail(f)    => Fail(f)
     }
 
-    final def foreach(f: A => Unit) { success.foreach(f) }
+    final def foreach[U](f: A => U) { success.foreach(f) }
 
     final def getOrElse[B >: A](default: => B): B = success.getOrElse(default)
 
@@ -77,6 +77,15 @@ sealed abstract class Response[+A] {
     final def onFail(f: FailureData => Unit): Response[A] = {
         fail.foreach(f)
         this
+    }
+
+    final def withFilter(p: (A) => Boolean): WithFilter = new WithFilter(p)
+
+    class WithFilter(p: A => Boolean) {
+        def map[B](f: A => B): Response[B] = self filter p map f
+        def flatMap[B](f: A => Response[B]): Response[B] = self filter p flatMap f
+        def foreach[U](f: A => U): Unit = self filter p foreach f
+        def withFilter(q: A => Boolean): WithFilter = new WithFilter(x => p(x) && q(x))
     }
 }
 

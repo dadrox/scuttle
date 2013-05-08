@@ -13,13 +13,6 @@ object Status extends Enum {
     val ServiceUnavailable = EnumVal("ServiceUnavailable", 503)
 }
 
-object KLADJDALJ extends App {
-    println(Status.values)
-
-    println(Status("notfound"))
-    println(Status("NotFound"))
-}
-
 class ResponseTest extends Fictus {
 
     trait Io {
@@ -108,6 +101,44 @@ class ResponseTest extends Fictus {
         Success(1) filter (1==) mustEqual Success(1)
         Success(1) filter (2==) mustMatch { case Fail(_) => }
         failed filter (2==) mustMatch { case Fail(_) => }
+    }
+
+    @Test
+    def withFilter_foreach {
+        expect(io.invoke) times 3
+
+        test {
+            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).foreach(_ => io.invoke)
+            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).foreach(_ => io.invoke)
+            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).foreach(_ => io.invoke)
+        }
+    }
+
+    @Test
+    def withFilter_map {
+        Success(1).withFilter(_ => true).map(1+) mustEqual Success(2)
+        failed.withFilter(_ => true).map(1+) mustMatch { case Fail(_) => }
+    }
+
+    @Test
+    def withFilter_flatMap {
+        Success(1).withFilter(_ => true) flatMap (v => Success(v + 2)) mustEqual Success(3)
+        failed.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Fail(_) => }
+    }
+
+    @Test
+    def withFilter_withFilter {
+        expect(io.invoke)
+
+        test {
+            Success(1).withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
+            Success(1).withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
+        }
     }
 
     @Test
