@@ -2,12 +2,11 @@ package com.dadrox.scuttle
 
 import org.junit.Test
 import org.fictus.Fictus
-import org.junit.Ignore
 
-case class F(kind: Failure, description: String, e: Option[Throwable] = None) extends FailureData
+case class F(kind: Status.EnumVal, description: String, e: Option[Throwable] = None)
 
 object Status extends Enum {
-    sealed case class EnumVal private[Status] (name: String, status: Int) extends Value with Failure
+    sealed case class EnumVal private[Status] (name: String, status: Int) extends Value //with Failure
 
     val NotFound = EnumVal("NotFound", 404)
     val ServiceUnavailable = EnumVal("ServiceUnavailable", 503)
@@ -22,13 +21,12 @@ class ResponseTest extends Fictus {
     val io = mock[Io]
 
     val f = F(Status.NotFound, "")
-    //    val failed: Response[Int] = f
-    val failed = Fail[Int, FailureData](f)
+    val failed: Response[Int, F] = Fail[F](f)
 
     @Test
     def for_first_fail_is_the_result {
-        val other: Response[Int] = Fail(F(Status.ServiceUnavailable, "2"))
-        val result: Response[Int] = for {
+        val other: Response[Int, F] = Fail(F(Status.ServiceUnavailable, "2"))
+        val result: Response[Int, F] = for {
             a <- failed
             b <- other
         } yield a + b
@@ -63,7 +61,35 @@ class ResponseTest extends Fictus {
     }
 
     @Test
+    def toOption {
+        Success(1).toOption mustEqual Some(1)
+        failed.toOption mustEqual None
+    }
+
+    @Test
+    def toSeq {
+        Success(1).toSeq mustEqual Seq(1)
+        failed.toSeq mustEqual Seq.empty
+    }
+
+    @Test
+    def exists {
+        Success(1).exists(1==) mustEqual true
+        Success(1).exists(2==) mustEqual false
+        failed.exists(1==) mustEqual false
+    }
+
+    @Test
+    def forall {
+        Success(1).forall(1==) mustEqual true
+        Success(1).forall(2==) mustEqual false
+        failed.forall(1==) mustEqual false
+    }
+
+    @Test
     def flatten {
+        List(List(1)).flatten
+
         Success(Success(1)).flatten mustEqual Success(1)
         Success(failed).flatten mustEqual failed
     }
@@ -96,11 +122,21 @@ class ResponseTest extends Fictus {
         Success(1).fail mustEqual None
     }
 
+    // TODO How can I get rid of this?
+    implicit def i2f(xx: Fail.Convert[Int]) = {
+        new RuntimeException().fillInStackTrace().printStackTrace()
+        null
+    }
+
     @Test
     def filter {
         Success(1) filter (1==) mustEqual Success(1)
         Success(1) filter (2==) mustMatch { case Fail(_) => }
         failed filter (2==) mustMatch { case Fail(_) => }
+
+        println(Success(1).filter(1==))
+        println(Success(1).filter(2==))
+        println(failed.filter(1==))
     }
 
     @Test

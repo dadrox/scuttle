@@ -1,108 +1,108 @@
 package com.dadrox.scuttle
 
-trait Failure {
-    def name: String
-}
-trait FailureData {
-    def kind(): Failure
-    def description(): String
-    def e(): Option[Throwable]
-}
-
 object Response {
-
-    implicit def failureData2Fail(failure: FailureData) = Fail(failure)
-
-    def apply(failure: FailureData) = Fail(failure)
-    def apply[A](a: A): Response[A] = a match {
-        case failure: FailureData => Fail(failure)
-        case success              => Success(success)
-    }
-
-    case class PredicateMissing() extends FailureData {
-        val kind = new Failure { val name = "PredicateMissing" }
-        val description = "Not matched"
-        val e = None
-    }
 }
 
 /** A response monad that carries detailed failure data.
+ *  Sorta like a right-biased Either.
  */
-sealed abstract class Response[+A] { self =>
+sealed abstract class Response[+A, +F] { self =>
     def name(): String
-    def isSuccess(): Boolean
-    def isFail(): Boolean
-    def success(): Option[A]
-    def fail(): Option[FailureData]
+
+    final def isSuccess(): Boolean = success.isDefined
+    final def isFail(): Boolean = fail.isDefined
+
+    final def success(): Option[A] = toOption
+
+    final def fail(): Option[F] = this match {
+        case Success(s) => None
+        case Fail(f)    => Some(f)
+    }
+
+    final def toOption() = this match {
+        case Success(s) => Some(s)
+        case Fail(_)    => None
+    }
+
+    final def toSeq() = this match {
+        case Success(s) => Seq(s)
+        case Fail(_)    => Seq.empty
+    }
+
+    final def exists(f: A => Boolean) = this match {
+        case Success(s) => f(s)
+        case Fail(_)    => false
+    }
+
+    final def forall(f: A => Boolean) = this match {
+        case Success(s) => f(s)
+        case Fail(_)    => false
+    }
 
     //    // like map for the failure
     //    def handle
-    //    // liek flatMap for the failue
+    //    // like flatMap for the failue
     //    def rescue
 
-    final def filter(f: A => Boolean): Response[A] = this match {
-        case Success(s) if (f(s)) => this
-        case _                    => Fail(Response.PredicateMissing())
+    def filter[F1 >: F](f: A => Boolean)(implicit ev: Fail.Convert[A] => F1): Response[A, F1] = this match {
+        case Success(s) => if (f(s)) this else Fail(ev(Fail.Convert(s)))
+        case Fail(f)    => Fail(f)
     }
 
-    final def map[B](f: A => B): Response[B] = this match {
+    final def map[B](f: A => B): Response[B, F] = this match {
         case Success(s) => Success(f(s))
         case Fail(f)    => Fail(f)
     }
 
-    final def flatMap[B](f: A => Response[B]): Response[B] = this match {
+    final def flatMap[B >: A, G >: F](f: A => Response[B, G]): Response[B, G] = this match {
         case Success(s) => f(s)
         case Fail(f)    => Fail(f)
     }
 
-    final def flatten[B](implicit evidence: A <:< Response[B]): Response[B] = this match {
+    def flatten[B >: A, G >: F, C](implicit evidence: B <:< Response[C, G]): Response[C, G] = this match {
         case Success(s) => s
         case Fail(f)    => Fail(f)
     }
 
-    final def foreach[U](f: A => U) { success.foreach(f) }
+    final def foreach[U](f: A => U) { toOption.foreach(f) }
 
-    final def getOrElse[B >: A](default: => B): B = success.getOrElse(default)
+    final def getOrElse[B >: A](default: => B): B = toOption.getOrElse(default)
 
-    final def orElse[B >: A](default: => Response[B]): Response[B] = this match {
+    final def orElse[B >: A, G >: F](default: => Response[B, G]): Response[B, G] = this match {
         case Success(s) => this
         case _          => default
     }
 
-    final def onSuccess(f: A => Unit): Response[A] = {
+    final def onSuccess(f: A => Unit): Response[A, F] = {
         foreach(f)
         this
     }
 
-    final def onFail(f: FailureData => Unit): Response[A] = {
+    final def onFail(f: F => Unit): Response[A, F] = {
         fail.foreach(f)
         this
     }
 
-    final def withFilter(p: (A) => Boolean): WithFilter = new WithFilter(p)
+    final def withFilter[F1 >: F](p: A => Boolean)(implicit ev: Fail.Convert[A] => F1): WithFilter[F1] = new WithFilter(p)
 
-    class WithFilter(p: A => Boolean) {
-        def map[B](f: A => B): Response[B] = self filter p map f
-        def flatMap[B](f: A => Response[B]): Response[B] = self filter p flatMap f
-        def foreach[U](f: A => U): Unit = self filter p foreach f
-        def withFilter(q: A => Boolean): WithFilter = new WithFilter(x => p(x) && q(x))
+    class WithFilter[F1 >: F](p: A => Boolean)(implicit ev: Fail.Convert[A] => F1) {
+        def map[B](f: A => B): Response[B, F1] = self.filter[F1](p)(ev).map(f)
+        def flatMap[B >: A, G >: F1](f: A => Response[B, G]): Response[B, G] = self.filter[F1](p)(ev).flatMap(f)
+        def foreach[U](f: A => U): Unit = self.filter[F1](p)(ev).foreach(f)
+        def withFilter(q: A => Boolean): WithFilter[F1] = new WithFilter(x => p(x) && q(x))
     }
 }
 
-final case class Success[+A](value: A) extends Response[A] {
+object Success {
+    case class Convert[+A](a: A)
+}
+final case class Success[+A](value: A) extends Response[A, Nothing] {
     override val name = "Success"
-    override val isSuccess = true
-    override val isFail = false
-
-    def success() = Some(value)
-    def fail() = None
 }
 
-final case class Fail[+A, F](failure: FailureData) extends Response[A] {
+object Fail {
+    case class Convert[+F](f: F)
+}
+final case class Fail[+F](failure: F) extends Response[Nothing, F] {
     override val name = "Fail"
-    override val isSuccess = false
-    override val isFail = true
-
-    def success() = None
-    def fail() = Some(failure)
 }
