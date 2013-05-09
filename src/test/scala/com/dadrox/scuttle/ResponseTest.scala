@@ -133,10 +133,6 @@ class ResponseTest extends Fictus {
         Success(1) filter (1==) mustEqual Success(1)
         Success(1) filter (2==) mustMatch { case Fail(_) => }
         failed filter (2==) mustMatch { case Fail(_) => }
-
-        println(Success(1).filter(1==))
-        println(Success(1).filter(2==))
-        println(failed.filter(1==))
     }
 
     @Test

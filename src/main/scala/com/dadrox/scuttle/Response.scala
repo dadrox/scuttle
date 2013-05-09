@@ -6,13 +6,13 @@ object Response {
 /** A response monad that carries detailed failure data.
  *  Sorta like a right-biased Either.
  */
-sealed abstract class Response[+A, +F] { self =>
+sealed abstract class Response[+S, +F] { self =>
     def name(): String
 
     final def isSuccess(): Boolean = success.isDefined
     final def isFail(): Boolean = fail.isDefined
 
-    final def success(): Option[A] = toOption
+    final def success(): Option[S] = toOption
 
     final def fail(): Option[F] = this match {
         case Success(s) => None
@@ -29,12 +29,12 @@ sealed abstract class Response[+A, +F] { self =>
         case Fail(_)    => Seq.empty
     }
 
-    final def exists(f: A => Boolean) = this match {
+    final def exists(f: S => Boolean) = this match {
         case Success(s) => f(s)
         case Fail(_)    => false
     }
 
-    final def forall(f: A => Boolean) = this match {
+    final def forall(f: S => Boolean) = this match {
         case Success(s) => f(s)
         case Fail(_)    => false
     }
@@ -44,59 +44,59 @@ sealed abstract class Response[+A, +F] { self =>
     //    // like flatMap for the failue
     //    def rescue
 
-    def filter[F1 >: F](f: A => Boolean)(implicit ev: Fail.Convert[A] => F1): Response[A, F1] = this match {
+    def filter[F1 >: F](f: S => Boolean)(implicit ev: Fail.Convert[S] => F1): Response[S, F1] = this match {
         case Success(s) => if (f(s)) this else Fail(ev(Fail.Convert(s)))
         case Fail(f)    => Fail(f)
     }
 
-    final def map[B](f: A => B): Response[B, F] = this match {
+    final def map[S1](f: S => S1): Response[S1, F] = this match {
         case Success(s) => Success(f(s))
         case Fail(f)    => Fail(f)
     }
 
-    final def flatMap[B >: A, G >: F](f: A => Response[B, G]): Response[B, G] = this match {
+    final def flatMap[S1, F1 >: F](f: S => Response[S1, F1]): Response[S1, F1] = this match {
         case Success(s) => f(s)
         case Fail(f)    => Fail(f)
     }
 
-    def flatten[B >: A, G >: F, C](implicit evidence: B <:< Response[C, G]): Response[C, G] = this match {
+    def flatten[S1 >: S, F1 >: F, C](implicit evidence: S1 <:< Response[C, F1]): Response[C, F1] = this match {
         case Success(s) => s
         case Fail(f)    => Fail(f)
     }
 
-    final def foreach[U](f: A => U) { toOption.foreach(f) }
+    final def foreach[U](f: S => U) { toOption.foreach(f) }
 
-    final def getOrElse[B >: A](default: => B): B = toOption.getOrElse(default)
+    final def getOrElse[S1 >: S](default: => S1): S1 = toOption.getOrElse(default)
 
-    final def orElse[B >: A, G >: F](default: => Response[B, G]): Response[B, G] = this match {
+    final def orElse[S1 >: S, F1 >: F](default: => Response[S1, F1]): Response[S1, F1] = this match {
         case Success(s) => this
         case _          => default
     }
 
-    final def onSuccess(f: A => Unit): Response[A, F] = {
+    final def onSuccess(f: S => Unit): Response[S, F] = {
         foreach(f)
         this
     }
 
-    final def onFail(f: F => Unit): Response[A, F] = {
+    final def onFail(f: F => Unit): Response[S, F] = {
         fail.foreach(f)
         this
     }
 
-    final def withFilter[F1 >: F](p: A => Boolean)(implicit ev: Fail.Convert[A] => F1): WithFilter[F1] = new WithFilter(p)
+    final def withFilter[F1 >: F](p: S => Boolean)(implicit ev: Fail.Convert[S] => F1): WithFilter[F1] = new WithFilter(p)
 
-    class WithFilter[F1 >: F](p: A => Boolean)(implicit ev: Fail.Convert[A] => F1) {
-        def map[B](f: A => B): Response[B, F1] = self.filter[F1](p)(ev).map(f)
-        def flatMap[B >: A, G >: F1](f: A => Response[B, G]): Response[B, G] = self.filter[F1](p)(ev).flatMap(f)
-        def foreach[U](f: A => U): Unit = self.filter[F1](p)(ev).foreach(f)
-        def withFilter(q: A => Boolean): WithFilter[F1] = new WithFilter(x => p(x) && q(x))
+    class WithFilter[F1 >: F](p: S => Boolean)(implicit ev: Fail.Convert[S] => F1) {
+        def map[S1](f: S => S1): Response[S1, F1] = self.filter[F1](p)(ev).map(f)
+        def flatMap[S1](f: S => Response[S1, F1]): Response[S1, F1] = self.filter[F1](p)(ev).flatMap(f)
+        def foreach[U](f: S => U): Unit = self.filter[F1](p)(ev).foreach(f)
+        def withFilter(q: S => Boolean): WithFilter[F1] = new WithFilter(x => p(x) && q(x))
     }
 }
 
 object Success {
-    case class Convert[+A](a: A)
+    case class Convert[+S](a: S)
 }
-final case class Success[+A](value: A) extends Response[A, Nothing] {
+final case class Success[+S](value: S) extends Response[S, Nothing] {
     override val name = "Success"
 }
 
