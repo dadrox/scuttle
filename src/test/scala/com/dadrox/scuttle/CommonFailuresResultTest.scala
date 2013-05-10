@@ -3,7 +3,7 @@ package com.dadrox.scuttle
 import org.junit.Test
 import org.fictus.Fictus
 
-object CommonFailuresResponseTest {
+object CommonFailuresResultTest {
     object HttpStatus extends Enum {
         sealed case class EnumVal private[HttpStatus] (name: String, status: Int) extends Value
 
@@ -18,44 +18,44 @@ object CommonFailuresResponseTest {
     case class Failure(status: HttpStatus.EnumVal, description: String, cause: Option[Throwable] = None)
 
     // Since all failures are the same, we define a convenience type
-    type Resp[A] = Response[A, Failure]
+    type Response[A] = Result[A, Failure]
 
     case class User()
     trait Backend {
-        def fetchUser(): Response[Option[User], Failure]
+        def fetchUser(): Result[Option[User], Failure]
     }
 
     class FrontendService(backend: Backend) {
-        def userByMatch(): Response[User, Failure] = backend.fetchUser match {
+        def userByMatch(): Result[User, Failure] = backend.fetchUser match {
             case Success(Some(user)) => Success(user)
             case Success(None)       => Failure(HttpStatus.NotFound, "User not found :(")
             case failure @ Fail(_)   => failure
         }
 
-        def userByFlatMap(): Resp[User] = {
+        def userByFlatMap(): Response[User] = {
             backend.fetchUser.flatMap {
                 case Some(user) => Success(user)
                 case None       => Failure(HttpStatus.NotFound, "User not found :(")
             }
         }
 
-        def userByFlatMap2(): Resp[User] = {
-            import com.dadrox.scuttle.Response.converters._
-            backend.fetchUser.flatMap { _.asResponse(Fail(Failure(HttpStatus.NotFound, "User not found :("))) }
+        def userByFlatMap2(): Response[User] = {
+            import com.dadrox.scuttle.Result.converters._
+            backend.fetchUser.flatMap { _.asResult(Fail(Failure(HttpStatus.NotFound, "User not found :("))) }
         }
 
-        def userByForComprehension(): Resp[User] = {
-            import com.dadrox.scuttle.Response.converters._
+        def userByForComprehension(): Response[User] = {
+            import com.dadrox.scuttle.Result.converters._
             for {
                 userOpt <- backend.fetchUser
-                user <- userOpt.asResponse(Fail(Failure(HttpStatus.NotFound, "User not found :(")))
+                user <- userOpt.asResult(Fail(Failure(HttpStatus.NotFound, "User not found :(")))
             } yield user
         }
     }
 }
 
-class CommonFailuresResponseTest extends Fictus {
-    import CommonFailuresResponseTest._
+class CommonFailuresResultTest extends Fictus {
+    import CommonFailuresResultTest._
 
     val user = User()
 

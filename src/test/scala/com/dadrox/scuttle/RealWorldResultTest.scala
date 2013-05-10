@@ -3,7 +3,7 @@ package com.dadrox.scuttle
 import org.junit.Test
 import org.fictus.Fictus
 
-object FailuresThatPropagateToTheFrontendResponseTest {
+object RealWorldResultTest {
     object HttpStatus extends Enum {
         sealed case class EnumVal private[HttpStatus] (name: String, status: Int) extends Value
 
@@ -28,41 +28,41 @@ object FailuresThatPropagateToTheFrontendResponseTest {
         }
     }
     case class BackendFailure(reason: BackendFailure.Reason.EnumVal, description: String, cause: Option[Throwable] = None) extends Failure
-
-    object FrontendFailure {
-        implicit def backendFailure2frontend(backendFail: Fail[BackendFailure]): Fail[FrontendFailure] = {
-            if (backend2Frontend.isDefinedAt(backendFail)) backend2Frontend.apply(backendFail)
-            else backendFail match {
-                case Fail(BackendFailure(BackendFailure.Reason.JsonUnparseable, desc, cause)) => FrontendFailure(HttpStatus.BadGateway, desc, cause)
-            }
-        }
-
-        def backend2Frontend(): PartialFunction[Fail[BackendFailure], Fail[FrontendFailure]] = {
-            case Fail(BackendFailure(BackendFailure.Reason.Timeout, desc, cause)) => FrontendFailure(HttpStatus.GatewayTimeout, desc, cause)
-        }
-    }
     case class FrontendFailure(status: HttpStatus.EnumVal, description: String, cause: Option[Throwable] = None) extends Failure
-
-    implicit def backend2FrontendReason(): PartialFunction[BackendFailure.Reason.EnumVal, HttpStatus.EnumVal] = {
-        case BackendFailure.Reason.Timeout => HttpStatus.GatewayTimeout
-    }
 
     case class User()
     trait Backend {
-        def fetchUser(): Response[Option[User], BackendFailure]
+        def fetchUser(): Result[Option[User], BackendFailure]
     }
 
     class FrontendService(backend: Backend) {
-        def userByMatch(): Response[Option[User], FrontendFailure] = backend.fetchUser match {
-            case Success(Some(user))                           => Success(Some(user))
-            case Success(None)                                 => FrontendFailure(HttpStatus.NotFound, "User not found :(")
-            case f @ Fail(BackendFailure(reason, desc, cause)) => f
+
+        // very verbose and cumbersome :/
+        def userByMatch(): Result[User, FrontendFailure] = backend.fetchUser match {
+            case Success(Some(user)) => Success(user)
+            case Success(None)       => FrontendFailure(HttpStatus.NotFound, "User not found :(")
+            case Fail(BackendFailure(reason, desc, cause)) => reason match {
+                case BackendFailure.Reason.Timeout         => FrontendFailure(HttpStatus.GatewayTimeout, desc, cause)
+                case BackendFailure.Reason.JsonUnparseable => FrontendFailure(HttpStatus.BadGateway, desc, cause)
+            }
+        }
+
+        // a little better?
+        def userByMatch2(): Result[User, FrontendFailure] = backend.fetchUser match {
+            case Success(Some(user))                       => Success(user)
+            case Success(None)                             => FrontendFailure(HttpStatus.NotFound, "User not found :(")
+            case Fail(BackendFailure(reason, desc, cause)) => FrontendFailure(backendFailureReason2frontendReason(reason), "whoops", cause)
+        }
+
+        def backendFailureReason2frontendReason(reason: BackendFailure.Reason.EnumVal) = reason match {
+            case BackendFailure.Reason.Timeout         => HttpStatus.GatewayTimeout
+            case BackendFailure.Reason.JsonUnparseable => HttpStatus.BadGateway
         }
     }
 }
 
-class FailuresThatPropagateToTheFrontendResponseTest extends Fictus {
-    import FailuresThatPropagateToTheFrontendResponseTest._
+class RealWorldResultTest extends Fictus {
+    import RealWorldResultTest._
 
     val user = User()
 
@@ -74,7 +74,7 @@ class FailuresThatPropagateToTheFrontendResponseTest extends Fictus {
     @Test
     def match_userFound {
         backend.fetchUser --> Success(Some(user))
-        test(fn) mustEqual Success(Some(user))
+        test(fn) mustEqual Success(user)
     }
 
     @Test

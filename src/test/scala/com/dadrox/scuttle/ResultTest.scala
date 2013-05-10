@@ -10,7 +10,7 @@ import org.fictus.Fictus
 object Magic {
     implicit def fail2Fail(f: FailureData): Fail[FailureData] = Fail(FailureData(f.status, f.description, f.cause))
 
-    type Resp[A] = Response[A, FailureData]
+    type Resp[A] = Result[A, FailureData]
 }
 
 case class FailureData(status: Status.EnumVal, description: String, cause: Option[Throwable] = None)
@@ -25,7 +25,7 @@ object Status extends Enum {
 // TODO tracing
 // TODO consider renaming everything to Result
 
-class ResponseTest extends Fictus {
+class ResultTest extends Fictus {
     import Magic._
 
     trait Io {
@@ -36,7 +36,7 @@ class ResponseTest extends Fictus {
 
     val failureData = FailureData(Status.NotFound, "")
     val rawFail = Fail(failureData)
-    val failed: Response[Int, FailureData] = rawFail
+    val failed: Result[Int, FailureData] = rawFail
 
     @Test
     def for_first_fail_is_the_result {
