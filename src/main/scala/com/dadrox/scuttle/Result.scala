@@ -13,6 +13,9 @@ object Result {
     }
 }
 
+// TODO:
+//  - Some notion of "tracing" that shows how results are chained? Sorta like stacktraces
+
 /** A response monad that carries detailed failure data.
  *  Sorta like a right-biased Either.
  */
@@ -50,16 +53,15 @@ sealed abstract class Result[+S, +F] { self =>
     }
 
     // like map for the failure
-    def handle[S1 >: S, F1](rescueFail: PartialFunction[F, F1]): Result[S1, F1] = this match {
-        case Fail(f) if (rescueFail.isDefinedAt(f)) => Fail(rescueFail(f))
-        //        case Fail(f)  => Fail(f)
-        case Success(s)                             => Success(s)
+    def rescue[S1 >: S, F1 >: F](rescueFail: PartialFunction[F, S1]): Result[S1, F] = this match {
+        case Fail(f) if (rescueFail.isDefinedAt(f)) => Success(rescueFail(f))
+        case _                                      => this
     }
 
     // like flatMap for the failure
-    def rescue[S1 >: S, F1](rescueFail: PartialFunction[F, Result[S1, F1]]): Result[S1, F1] = this match {
+    def rescueFlat[S1 >: S, F1 >: F](rescueFail: PartialFunction[F, Result[S1, F1]]): Result[S1, F1] = this match {
         case Fail(f) if (rescueFail.isDefinedAt(f)) => rescueFail(f)
-        case Success(s)                             => Success(s)
+        case _                                      => this
     }
 
     def filter[F1 >: F](f: S => Boolean)(implicit ev: Fail.Convert[S] => F1): Result[S, F1] = this match {

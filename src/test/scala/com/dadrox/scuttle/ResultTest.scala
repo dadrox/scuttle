@@ -22,9 +22,6 @@ object Status extends Enum {
     val ServiceUnavailable = EnumVal("ServiceUnavailable", 503)
 }
 
-// TODO tracing
-// TODO consider renaming everything to Result
-
 class ResultTest extends Fictus {
     import Magic._
 
@@ -116,6 +113,46 @@ class ResultTest extends Fictus {
         // Doesn't compile
         // Success(rawFail).flatten mustEqual failed
         // failed.flatten mustEqual failed
+    }
+
+    @Test
+    def rescue_Success {
+        Success(1).rescue {
+            case `failed` => 2
+        } mustEqual Success(1)
+    }
+
+    @Test
+    def rescue_Fail {
+        failed.rescue {
+            case `failureData` => 2
+        } mustEqual Success(2)
+
+        failed.rescue {
+            case `failureData` => "win"
+        } mustEqual Success("win")
+
+        failed.rescue {
+            case FailureData(null, "won't match", _) => 2
+        } mustEqual failed
+    }
+
+    @Test
+    def rescueFlat_Success {
+        Success(1).rescueFlat {
+            case `failed` => Success(2)
+        } mustEqual Success(1)
+    }
+
+    @Test
+    def rescueFlat_Fail {
+        failed.rescueFlat {
+            case `failureData` => Success(2)
+        } mustEqual Success(2)
+
+        failed.rescueFlat {
+            case FailureData(null, "won't match", _) => Success(2)
+        } mustEqual failed
     }
 
     @Test
