@@ -2,7 +2,7 @@ name := "scuttle"
 
 organization := "com.dadrox"
 
-version := "0.1"
+version := "0.2-SNAPSHOT"
 
 libraryDependencies ++= Seq(
 	"junit" % "junit-dep" % "4.10" % "test->default",
