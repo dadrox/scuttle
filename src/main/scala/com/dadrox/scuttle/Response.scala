@@ -29,22 +29,22 @@ sealed abstract class Response[+S, +F] { self =>
         case Fail(f)    => Some(f)
     }
 
-    final def toOption() = this match {
+    final def toOption(): Option[S] = this match {
         case Success(s) => Some(s)
         case Fail(_)    => None
     }
 
-    final def toSeq() = this match {
+    final def toSeq(): Seq[S] = this match {
         case Success(s) => Seq(s)
         case Fail(_)    => Seq.empty
     }
 
-    final def exists(f: S => Boolean) = this match {
+    final def exists(f: S => Boolean): Boolean = this match {
         case Success(s) => f(s)
         case Fail(_)    => false
     }
 
-    final def forall(f: S => Boolean) = this match {
+    final def forall(f: S => Boolean): Boolean = this match {
         case Success(s) => f(s)
         case Fail(_)    => false
     }
@@ -100,14 +100,6 @@ sealed abstract class Response[+S, +F] { self =>
         fail.foreach(f)
         this
     }
-
-//    final def onWhatever(f: Response[S,F] => Unit): Response[S,F] = {
-//        this match {
-//            case s@ Success(_) =>
-//            case f@Fail(_) => onFail(f)
-//        }
-//        this
-//    }
 
     final def withFilter[F1 >: F](p: S => Boolean)(implicit ev: Fail.Convert[S] => F1): WithFilter[F1] = new WithFilter(p)
 
