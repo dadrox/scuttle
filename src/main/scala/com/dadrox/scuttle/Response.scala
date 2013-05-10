@@ -1,6 +1,16 @@
 package com.dadrox.scuttle
 
 object Response {
+    implicit def failure2Fail[F](failure: F): Fail[F] = Fail(failure)
+
+    object converters {
+        implicit def optionToResponse[S, F](it: Option[S]) = new {
+            def asResponse[F1 >: F](fail: Fail[F1]): Response[S, F1] = it match {
+                case Some(value) => Success(value)
+                case None        => fail
+            }
+        }
+    }
 }
 
 /** A response monad that carries detailed failure data.
@@ -39,10 +49,18 @@ sealed abstract class Response[+S, +F] { self =>
         case Fail(_)    => false
     }
 
-    //    // like map for the failure
-    //    def handle
-    //    // like flatMap for the failue
-    //    def rescue
+    // like map for the failure
+    def handle[S1 >: S, F1](rescueFail: PartialFunction[F, F1]): Response[S1, F1] = this match {
+        case Fail(f) if (rescueFail.isDefinedAt(f)) => Fail(rescueFail(f))
+        //        case Fail(f)  => Fail(f)
+        case Success(s)                             => Success(s)
+    }
+
+    // like flatMap for the failure
+    def rescue[S1 >: S, F1](rescueFail: PartialFunction[F, Response[S1, F1]]): Response[S1, F1] = this match {
+        case Fail(f) if (rescueFail.isDefinedAt(f)) => rescueFail(f)
+        case Success(s)                             => Success(s)
+    }
 
     def filter[F1 >: F](f: S => Boolean)(implicit ev: Fail.Convert[S] => F1): Response[S, F1] = this match {
         case Success(s) => if (f(s)) this else Fail(ev(Fail.Convert(s)))
@@ -82,6 +100,14 @@ sealed abstract class Response[+S, +F] { self =>
         fail.foreach(f)
         this
     }
+
+//    final def onWhatever(f: Response[S,F] => Unit): Response[S,F] = {
+//        this match {
+//            case s@ Success(_) =>
+//            case f@Fail(_) => onFail(f)
+//        }
+//        this
+//    }
 
     final def withFilter[F1 >: F](p: S => Boolean)(implicit ev: Fail.Convert[S] => F1): WithFilter[F1] = new WithFilter(p)
 

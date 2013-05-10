@@ -88,7 +88,7 @@ class TrivialCaseClassEnumTest extends Fictus {
     }
 
     @Test
-    def no_exhaustive_match_if_you_seal_both_the_case_class_and_a_trait { // kinda verbose :(
+    def no_actual_exhaustive_match_if_you_seal_both_the_case_class_and_a_trait_ALL_LIES { // kinda verbose :(
 
         object SealedCaseClassEnumWithSealedTrait extends Enum {
             sealed trait Sealed
@@ -96,11 +96,20 @@ class TrivialCaseClassEnumTest extends Fictus {
 
             val A = new EnumVal("A") with Sealed
             val B = new EnumVal("B") with Sealed
+            val C = new EnumVal("C") with Sealed
         }
 
+        val instance: SealedCaseClassEnumWithSealedTrait.EnumVal = SealedCaseClassEnumWithSealedTrait.A
         shouldThrow[MatchError] {
-            val instance: SealedCaseClassEnumWithSealedTrait.EnumVal = SealedCaseClassEnumWithSealedTrait.A
-            instance match { case SealedCaseClassEnumWithSealedTrait.B => }
+            instance match {
+                case SealedCaseClassEnumWithSealedTrait.B =>
+            }
+        }
+
+        instance match {
+            case it @ SealedCaseClassEnumWithSealedTrait.A => it mustEqual SealedCaseClassEnumWithSealedTrait.A
+            case it @ SealedCaseClassEnumWithSealedTrait.B => it mustEqual SealedCaseClassEnumWithSealedTrait.B
+            case it @ SealedCaseClassEnumWithSealedTrait.C => it mustEqual SealedCaseClassEnumWithSealedTrait.C
         }
     }
 }

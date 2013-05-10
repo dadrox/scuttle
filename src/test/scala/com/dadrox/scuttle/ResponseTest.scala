@@ -3,16 +3,32 @@ package com.dadrox.scuttle
 import org.junit.Test
 import org.fictus.Fictus
 
-case class F(kind: Status.EnumVal, description: String, e: Option[Throwable] = None)
+/*
+ * To make dealing with the type a bit easier, define an implicit that convert the actual failure data case class to a Fail.
+ * Also you can define a type that hides the Fail type completely for a given context.
+ */
+object Magic {
+    implicit def fail2Fail(f: Failed): Fail[Failed] = Fail(Failed(f.status, f.description, f.cause))
+
+    type Resp[A] = Response[A, Failed]
+}
+
+case class Failed(status: Status.EnumVal, description: String, cause: Option[Throwable] = None)
 
 object Status extends Enum {
-    sealed case class EnumVal private[Status] (name: String, status: Int) extends Value //with Failure
+    sealed case class EnumVal private[Status] (name: String, status: Int) extends Value
 
     val NotFound = EnumVal("NotFound", 404)
     val ServiceUnavailable = EnumVal("ServiceUnavailable", 503)
 }
 
+// TODO use raw Fail in every test
+// TODO onWhatever
+// TODO tracing
+// TODO consider renaming everything to Result
+
 class ResponseTest extends Fictus {
+    import Magic._
 
     trait Io {
         def invoke()
@@ -20,13 +36,13 @@ class ResponseTest extends Fictus {
 
     val io = mock[Io]
 
-    val f = F(Status.NotFound, "")
-    val failed: Response[Int, F] = Fail[F](f)
+    val f = Failed(Status.NotFound, "")
+    val failed: Response[Int, Failed] = f
 
     @Test
     def for_first_fail_is_the_result {
-        val other: Response[Int, F] = Fail(F(Status.ServiceUnavailable, "2"))
-        val result: Response[Int, F] = for {
+        val other: Resp[Int] = Failed(Status.ServiceUnavailable, "2")
+        val result = for {
             a <- failed
             b <- other
         } yield a + b
@@ -88,10 +104,10 @@ class ResponseTest extends Fictus {
 
     @Test
     def flatten {
-        List(List(1)).flatten
-
         Success(Success(1)).flatten mustEqual Success(1)
         Success(failed).flatten mustEqual failed
+
+//        failed.flatten mustEqual failed
     }
 
     @Test
