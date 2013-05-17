@@ -127,9 +127,9 @@ class ResultTest extends Fictus {
         Success(Success(Success(1))).flatten mustEqual Success(Success(1))
         Success(Success(1)).flatten mustEqual Success(1)
         Success(failed).flatten mustEqual failed
+        Success(rawFail).flatten mustEqual rawFail
 
         // Doesn't compile
-        // Success(rawFail).flatten mustEqual failed
         // failed.flatten mustEqual failed
     }
 
