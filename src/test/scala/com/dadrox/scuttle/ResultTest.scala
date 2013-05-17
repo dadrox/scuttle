@@ -10,17 +10,17 @@ import org.fictus.Fictus
 object Magic {
     implicit def fail2Fail(f: FailureData): Fail[FailureData] = Fail(FailureData(f.status, f.description, f.cause))
 
-    type Resp[A] = Result[A, FailureData]
+    type Response[A] = Result[A, FailureData]
 }
 
-case class FailureData(status: Status.EnumVal, description: String, cause: Option[Throwable] = None)
-
-object Status extends Enum {
-    sealed case class EnumVal private[Status] (name: String, status: Int) extends Value
-
-    val NotFound = EnumVal("NotFound", 404)
-    val ServiceUnavailable = EnumVal("ServiceUnavailable", 503)
+object MatchFail {
+    def unapply(f: Result[_, FailureData]) = f match {
+        case Fail(FailureData(s, d, t)) => Some((s, d, t))
+        case _                          => None
+    }
 }
+
+case class FailureData(status: Int, description: String, cause: Option[Throwable] = None)
 
 class ResultTest extends Fictus {
     import Magic._
@@ -31,13 +31,13 @@ class ResultTest extends Fictus {
 
     val io = mock[Io]
 
-    val failureData = FailureData(Status.NotFound, "")
+    val failureData = FailureData(404, "")
     val rawFail = Fail(failureData)
     val failed: Result[Int, FailureData] = rawFail
 
     @Test
     def for_first_fail_is_the_result {
-        val other: Resp[Int] = FailureData(Status.ServiceUnavailable, "2")
+        val other: Response[Int] = FailureData(503, "2")
         val result = for {
             a <- failed
             b <- other
@@ -70,6 +70,24 @@ class ResultTest extends Fictus {
             b <- Success(2)
         } yield a + b
         result mustEqual Success(3)
+    }
+
+    @Test
+    def matching {
+        Success(1) match {
+            case Success(1) =>
+            case _          => fail("Should have matched")
+        }
+
+        failed match {
+            case Fail(FailureData(_, _, _)) =>
+            case _                          => fail("Should have matched")
+        }
+
+        failed match {
+            case xx @ MatchFail(s, d, t) =>
+            case _                       => fail("Should have matched")
+        }
     }
 
     @Test
@@ -133,7 +151,7 @@ class ResultTest extends Fictus {
         } mustEqual Success("win")
 
         failed.rescue {
-            case FailureData(null, "won't match", _) => 2
+            case FailureData(-1, "won't match", _) => 2
         } mustEqual failed
     }
 
@@ -151,7 +169,7 @@ class ResultTest extends Fictus {
         } mustEqual Success(2)
 
         failed.rescueFlat {
-            case FailureData(null, "won't match", _) => Success(2)
+            case FailureData(-1, "won't match", _) => Success(2)
         } mustEqual failed
     }
 
