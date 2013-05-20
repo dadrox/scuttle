@@ -5,7 +5,7 @@ import org.junit.Test
 import java.util.Date
 
 object TimeFormatTest {
-    // 20130520 @ exactly noon
+    // 20130520 @ exactly noon UTC
     val Now = 1369051200000L
 }
 class TimeFormatTest extends Fictus {
@@ -19,16 +19,4 @@ class TimeFormatTest extends Fictus {
         new TimeFormat("yyyyMMdd HH:mm:ss.SSS").format(Now) mustEqual "20130520 12:00:00.000"
         new TimeFormat("yyyyMMdd HH:mm:ss.SSS Z").format(Now) mustEqual "20130520 12:00:00.000 +0000"
     }
-}
-
-object Main extends App {
-    println(System.currentTimeMillis)
-
-    val d = new Date()
-    d.setYear(2013)
-    d.setMonth(5)
-    d.setHours(12)
-    d.setMinutes(0)
-    d.setSeconds(0)
-    println(d)
 }

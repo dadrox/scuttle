@@ -5,20 +5,22 @@ import org.junit.Test
 import java.util.Date
 import com.dadrox.scuttle.time.converters.intToDuration
 
-class TimeTest extends DurationOpsTestBase(Time) with Fictus {
-
+object TimeTest {
     val Now = System.currentTimeMillis()
     val TimeNow = Time.fromMilliseconds(Now)
+    val Epoch = Time.Epoch
+}
+class TimeTest extends DurationOpsTestBase(Time) with Fictus {
+    import TimeTest._
 
     @Test
     def java_date_conversions {
-        val epoch = Time.Epoch
         val date = new Date(0)
 
-        epoch.milliseconds mustEqual date.getTime()
-        epoch.toDate mustEqual date
-        date mustEqual epoch.toDate
-        Time.fromDate(date) mustEqual epoch
+        Epoch.milliseconds mustEqual date.getTime()
+        Epoch.toDate mustEqual date
+        date mustEqual Epoch.toDate
+        Time.fromDate(date) mustEqual Epoch
     }
 
     @Test
@@ -35,12 +37,12 @@ class TimeTest extends DurationOpsTestBase(Time) with Fictus {
 
     @Test
     def adding {
-        (TimeNow + (3 seconds)) mustEqual Time.fromMilliseconds(Now + 3 * 1000)
+        (TimeNow + 3.seconds) mustEqual Time.fromMilliseconds(Now + 3 * 1000)
     }
 
     @Test
     def subtracting {
-        (TimeNow - (3 seconds)) mustEqual Time.fromMilliseconds(Now - 3 * 1000)
+        (TimeNow - 3.seconds) mustEqual Time.fromMilliseconds(Now - 3 * 1000)
     }
 
     @Test
@@ -48,9 +50,21 @@ class TimeTest extends DurationOpsTestBase(Time) with Fictus {
         FakeTime.set(Now)
         val now = FakeTime.now
         now mustEqual TimeNow
-        (now + (3 seconds)) mustEqual Time.fromMilliseconds(Now + 3 * 1000)
+        (now + 3.seconds) mustEqual Time.fromMilliseconds(Now + 3 * 1000)
 
         FakeTime.set(0)
         Time.Epoch mustEqual FakeTime.now
+    }
+
+    @Test
+    def since {
+        TimeNow since Epoch mustEqual Duration.fromMilliseconds(Now)
+        TimeNow - 10.minutes since TimeNow - 1.day mustEqual 23.hours + 50.minutes
+    }
+
+    @Test
+    def until {
+        Epoch until TimeNow mustEqual Duration.fromMilliseconds(Now)
+        TimeNow until TimeNow + 1.day mustEqual 1.day
     }
 }

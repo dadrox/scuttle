@@ -1,7 +1,5 @@
 package com.dadrox.scuttle.time
 
-import com.dadrox.scuttle.Enum
-
 object Duration extends DurationLike[Duration] {
     object Millis {
         val perSecond = 1000L
@@ -26,33 +24,20 @@ case class Duration private[time] (milliseconds: Long) extends DurationLikeOps[D
     def /(scalar: Long): Duration = Duration(inMilliseconds / scalar)
 
     override val toString: String = toString(false)
-    def toString(terse: Boolean = false): String = {
-        def padded(w: Int, value: Long) = "0" * (w - value.toString.length()) + value
-        def div(numerator: Long, denominator: Long): (Long, Long) = (numerator / denominator, numerator % denominator)
 
+    def toString(terse: Boolean = false): String = {
         val sb = new StringBuilder
         var remainder = milliseconds
         for (u <- TimeUnit.values) {
             val dividend = remainder / u.msPer
             if (dividend > 0) {
-                sb.append("+" + dividend + "." + u.name)
+                sb.append("+" + dividend + "." + (if (terse) u.short else u.name))
                 if (dividend > 1) sb.append("s")
+                remainder -= dividend * u.msPer
             }
-            remainder -= dividend * u.msPer
         }
         sb.toString
     }
-}
-
-object TimeUnit extends Enum {
-    sealed case class EnumVal private[TimeUnit] (name: String, short: String, msPer: Long) extends Value
-
-    val Week = EnumVal("week", "w", 7 * 24 * 60 * 60 * 1000L)
-    val Day = EnumVal("day", "d", 24 * 60 * 60 * 1000L)
-    val Hour = EnumVal("hour", "h", 60 * 60 * 1000L)
-    val Minute = EnumVal("minute", "m", 60 * 1000L)
-    val Second = EnumVal("second", "s", 1000L)
-    val Millisecond = EnumVal("millisecond", "ms", 1L)
 }
 
 trait DurationLike[A <: DurationLikeOps[A]] {
