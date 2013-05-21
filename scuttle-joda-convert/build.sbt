@@ -1,4 +1,5 @@
 name := "scuttle-joda-convert"
 
 libraryDependencies ++= Seq(
-	"com.dadrox" % "sbt-junit" % "0.3" % "test")
+	"org.joda" % "joda-convert" % "1.2" % "provided",
+	"joda-time" % "joda-time" % "2.1" % "provided")
