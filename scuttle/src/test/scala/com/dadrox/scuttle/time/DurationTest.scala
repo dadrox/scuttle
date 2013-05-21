@@ -4,7 +4,7 @@ import org.junit.Test
 import org.fictus.Fictus
 import com.dadrox.scuttle.time.converters.intToDuration
 
-class DurationTest extends DurationOpsTestBase(Duration) with Fictus {
+class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
     @Test
     def int_implicits {
         import com.dadrox.scuttle.time.converters.intToDuration

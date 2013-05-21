@@ -4,33 +4,16 @@ object Time extends TimeSource {
     private val defaultFormat = new TimeFormat("yyyyMMdd HH:mm:ss Z")
 }
 
-case class Time(milliseconds: Long) extends TimeLikeOps[Time] {
+case class Time(milliseconds: Long) extends TimeInstance[Time] {
     import Time._
 
     override val ops = Time
     override def inMilliseconds() = milliseconds
 
-    /** Formats the Time to UTC
-     */
-    def format(pattern: String): String = new TimeFormat(pattern).format(this)
-
-    def since(then: Time): Duration = this - then
-    def until(then: Time): Duration = then - this
-
     override lazy val toString = defaultFormat.format(this)
 }
 
-trait TimeLike[A <: TimeLikeOps[A]] extends DurationLike[A] {
-    def fromDate(date: java.util.Date): Time = Time.fromMilliseconds(date.getTime())
-}
-
-trait TimeLikeOps[A <: TimeLikeOps[A]] extends DurationLikeOps[A] {
-    def toDate(): java.util.Date = new java.util.Date(inMilliseconds)
-
-    def -(then: Time): Duration = Duration(inMilliseconds - then.inMilliseconds)
-}
-
-trait TimeSource extends TimeLike[Time] {
+trait TimeSource extends DurationSource[Time] {
     def now() = fromMilliseconds(System.currentTimeMillis())
 
     val Epoch = new Time(0)
@@ -38,6 +21,23 @@ trait TimeSource extends TimeLike[Time] {
     override val Max = new Time(Long.MaxValue)
     override val Min = new Time(Long.MinValue)
     def fromMilliseconds(ms: Long) = new Time(ms)
+
+    def fromDate(date: java.util.Date): Time = fromMilliseconds(date.getTime())
+}
+
+trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
+    def toDate(): java.util.Date = new java.util.Date(inMilliseconds)
+
+    /** Formats the Time to UTC
+     */
+    def format(pattern: String): String = new TimeFormat(pattern).format(this)
+
+    def since(then: A): Duration = this - then
+    def until(then: A): Duration = then - this
+
+    def -(then: TimeInstance[A]): Duration = Duration(inMilliseconds - then.inMilliseconds)
+
+    // abs
 }
 
 class TimeFormat(pattern: String) {
@@ -46,7 +46,7 @@ class TimeFormat(pattern: String) {
     private val format = new SimpleDateFormat(pattern)
     format.setTimeZone(TimeZone.getTimeZone("UTC"))
 
-    def format(time: Time): String = format.format(time.toDate)
+    def format[A <: TimeInstance[A]](time: TimeInstance[A]): String = format.format(time.toDate)
 }
 
 /** Useful for time sensitive unit tests.
@@ -56,6 +56,8 @@ object FakeTime extends FakeTimeInstance
 
 class FakeTimeInstance extends TimeSource {
     import java.util.concurrent.atomic.AtomicLong
+
+    // TODO ThreadLocal
     val current = new AtomicLong(System.currentTimeMillis())
 
     override def now() = Time.fromMilliseconds(current.get)

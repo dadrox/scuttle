@@ -1,6 +1,6 @@
 package com.dadrox.scuttle.time
 
-object Duration extends DurationLike[Duration] {
+object Duration extends DurationSource[Duration] {
     object Millis {
         val perSecond = 1000L
         val perMinute = perSecond * 60L
@@ -14,7 +14,7 @@ object Duration extends DurationLike[Duration] {
     def fromMilliseconds(ms: Long) = new Duration(ms)
 }
 
-case class Duration private[time] (milliseconds: Long) extends DurationLikeOps[Duration] {
+case class Duration private[time] (milliseconds: Long) extends DurationInstance[Duration] {
     override val ops = Duration
     def inMilliseconds() = milliseconds
 
@@ -40,7 +40,7 @@ case class Duration private[time] (milliseconds: Long) extends DurationLikeOps[D
     }
 }
 
-trait DurationLike[A <: DurationLikeOps[A]] {
+trait DurationSource[A <: DurationInstance[A]] {
     // TODO Add positive and negative infinity everywhere to deal with over/underflows
 
     /** The largest possible Duration
@@ -59,9 +59,9 @@ trait DurationLike[A <: DurationLikeOps[A]] {
     def fromWeeks(w: Long): A = fromMilliseconds(w * Duration.Millis.perWeek)
 }
 
-trait DurationLikeOps[A <: DurationLikeOps[A]] extends Ordered[A] {
+trait DurationInstance[A <: DurationInstance[A]] extends Ordered[A] {
     import Duration._
-    protected def ops(): DurationLike[A]
+    protected def ops(): DurationSource[A]
 
     def inMilliseconds(): Long // abstract
     def inMillis(): Long = inMilliseconds

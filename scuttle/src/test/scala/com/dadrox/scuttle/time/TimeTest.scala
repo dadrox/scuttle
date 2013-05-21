@@ -10,7 +10,7 @@ object TimeTest {
     val TimeNow = Time.fromMilliseconds(Now)
     val Epoch = Time.Epoch
 }
-class TimeTest extends DurationOpsTestBase(Time) with Fictus {
+class TimeTest extends DurationSourceTestBase(Time) with Fictus {
     import TimeTest._
 
     @Test
