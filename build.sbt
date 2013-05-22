@@ -1,6 +1,6 @@
 organization in ThisBuild := "com.dadrox"
 
-version in ThisBuild := "0.3-SNAPSHOT"
+version in ThisBuild := "0.4-SNAPSHOT"
 
 libraryDependencies in ThisBuild ++= Seq(
 	"junit" % "junit-dep" % "4.10" % "test->default",

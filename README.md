@@ -40,11 +40,23 @@ A convenient enum structure.
     scala> Status.NotFound
     res3: Status.EnumVal = EnumVal(NotFound,404)
 
-## Dependency
+### Time, Duration
 
-### build.sbt
+Agnostic, pure scala time and duration library.
+The convert libraries allow conversion to and from Twitter or Joda times and durations.
 
-    libraryDependencies += "com.dadrox" % "scuttle" % "0.1"
+
+## Dependencies
+
+### scuttle
+
+    libraryDependencies += "com.dadrox" % "scuttle" % "0.3"
+
+### scuttle convert libs
+
+    "com.dadrox" % "scuttle-twitter-convert" % "0.3"
+
+    "com.dadrox" % "scuttle-joda-convert" % "0.3"
 
 ## License
 

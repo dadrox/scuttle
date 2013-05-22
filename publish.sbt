@@ -1,10 +1,10 @@
-publishMavenStyle := true
+publishMavenStyle in ThisBuild := true
 
-publishArtifact in Test := false
+publishArtifact in ThisBuild in Test := false
 
-pomIncludeRepository := { _ => false }
+pomIncludeRepository in ThisBuild := { _ => false }
 
-publishTo <<= (version) { version: String =>
+publishTo in ThisBuild <<= (version) { version: String =>
     val sonatype = "https://oss.sonatype.org/"
     if (version.trim.endsWith("SNAPSHOT"))
         Some("snapshots" at sonatype + "content/repositories/snapshots")
@@ -12,9 +12,9 @@ publishTo <<= (version) { version: String =>
         Some("releases"  at sonatype + "service/local/staging/deploy/maven2")
 }
 
-credentials += Credentials(Path.userHome / ".credentials" / "sonatype")
+credentials in ThisBuild += Credentials(Path.userHome / ".credentials" / "sonatype")
 
-pomExtra := PomExtra(
+pomExtra in ThisBuild := PomExtra(
     url = "https://github.com/dadrox/scuttle",
     scm = Scm("https://github.com/dadrox/scuttle", "scm:git:git@github.com:dadrox/scuttle.git"),
     license = License("BSD 2-Clause License", "http://opensource.org/licenses/BSD-2-Clause"),
