@@ -4,8 +4,29 @@ import org.fictus.Fictus
 import org.junit.Test
 import com.dadrox.scuttle.time.{ Duration, Time }
 import org.joda.time.{ DateTime => JodaTime, Duration => JodaDuration }
+import org.joda.time.format.DateTimeFormat
 
 class ConvertersTest extends Fictus {
+    @Test
+    def foo {
+        def parse(pattern: String, date: String) = {
+            val format = DateTimeFormat.forPattern(pattern)
+            format.parseDateTime(date)
+        }
+        def jacked(pattern: String, date: String) = shouldThrow[IllegalArgumentException](println(parse(pattern, date)))
+
+        jacked("MM", "5/20/2013 12:00:00 PM")
+        jacked("MM", "5/20/2013 12:00:00 PM")
+
+        parse("MM/dd/yyyy HH:mm:ss a", "5/20/2013 12:00:00 PM")
+        jacked("MM/dd/yyyy HH:mm:ss", "5/20/2013 12:00:00 PM")
+        jacked("MM/dd/yyyy", "5/20/2013 12:00:00 PM")
+        jacked("", "5/20/2013 12:00:00 PM")
+
+        parse("MM/dd/yyyy HH:mm:ss Z", "5/20/2013 12:00:00 -0600")
+        jacked("MM/dd/yyyy HH:mm:ss", "5/20/2013 12:00:00 -0600")
+    }
+
     @Test
     def scuttleTimeToJoda_conversion {
         import com.dadrox.scuttle.joda.conversions.scuttleTimeToJodaTime
@@ -27,6 +48,7 @@ class ConvertersTest extends Fictus {
         scuttle mustEqual joda
         joda mustEqual scuttle
     }
+
     @Test
     def scuttleDurationToJoda_conversion {
         import com.dadrox.scuttle.joda.conversions.scuttleDurationToJodaDuration

@@ -6,12 +6,32 @@ import java.util.Date
 import com.dadrox.scuttle.time.converters.intToDuration
 
 object TimeTest {
-    val Now = System.currentTimeMillis()
+    // 20130520 @ exactly noon UTC
+    val Now = 1369051200000L
     val TimeNow = Time.fromMilliseconds(Now)
     val Epoch = Time.Epoch
 }
 class TimeTest extends DurationSourceTestBase(Time) with Fictus {
     import TimeTest._
+
+    @Test
+    def date_parsing {
+        Time.parse("MM/dd/yyyy HH:mm:ss Z", "5/20/2013 12:00:00 -0600") mustEqual Some(TimeNow + 6.hours)
+        Time.parse("MM/dd/yyyy HH:mm:ss", "5/20/2013 12:00:00 -0600") mustEqual Some(TimeNow)
+
+        Time.parse("MM/dd/yyyy HH:mm:ss a", "5/20/2013 12:00:00 PM") mustEqual Some(TimeNow)
+        Time.parse("MM/dd/yyyy HH:mm:ss", "5/20/2013 12:00:00 PM") mustEqual Some(TimeNow)
+        Time.parse("MM/dd/yyyy", "5/20/2013 12:00:00 PM") mustEqual Some(TimeNow - 12.hours)
+        Time.parse("", "5/20/2013 12:00:00 PM") mustEqual None
+
+        Time.parse("", "") mustEqual None
+        Time.parse("MM/dd/yyyy", "") mustEqual None
+    }
+
+    @Test
+    def antitest_date_parsing_invalid_format_should_produce_None {
+        Time.parse("MM", "5/20/2013 12:00:00 PM") mustEqual Some(Time.Epoch + 17.weeks + 1.day)
+    }
 
     @Test
     def java_date_conversions {

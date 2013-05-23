@@ -23,6 +23,13 @@ trait TimeSource extends DurationSource[Time] {
     def fromMilliseconds(ms: Long) = new Time(ms)
 
     def fromDate(date: java.util.Date): Time = fromMilliseconds(date.getTime())
+
+    def parse(pattern: String, date: String): Option[Time] = {
+        try Some(new TimeFormat(pattern).parse(date))
+        catch {
+            case _ => None
+        }
+    }
 }
 
 trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
@@ -47,6 +54,9 @@ class TimeFormat(pattern: String) {
     format.setTimeZone(TimeZone.getTimeZone("UTC"))
 
     def format[A <: TimeInstance[A]](time: TimeInstance[A]): String = format.format(time.toDate)
+
+    // TODO throws exceptions
+    def parse(date: String): Time = Time.fromDate(format.parse(date))
 }
 
 /** Useful for time sensitive unit tests.
