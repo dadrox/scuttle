@@ -20,6 +20,17 @@ class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
     }
 
     @Test
+    def unary_- {
+        -3.seconds mustEqual Duration.fromSeconds(-3)
+    }
+
+    @Test
+    def abs {
+        -3.seconds.abs mustEqual 3.seconds
+        -0.seconds.abs mustEqual 0.seconds
+    }
+
+    @Test
     def adding {
         3.seconds + 3.seconds mustEqual 6.seconds
     }
@@ -43,6 +54,7 @@ class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
 
     @Test
     def toStrings_are_decent {
+        -3.milliseconds.toString mustEqual "-3.milliseconds"
         3.milliseconds.toString mustEqual "+3.milliseconds"
         3.seconds.toString mustEqual "+3.seconds"
         3.minutes.toString mustEqual "+3.minutes"
@@ -52,6 +64,9 @@ class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
 
         (1.week + 1.day + 1.hour + 1.minute + 1.second + 1.ms).toString
             .mustEqual("+1.week+1.day+1.hour+1.minute+1.second+1.millisecond")
+
+        (-(1.week + 1.day + 1.hour + 1.minute + 1.second + 1.ms)).toString
+            .mustEqual("-1.week-1.day-1.hour-1.minute-1.second-1.millisecond")
 
         (1.week + 1.day + 1.hour + 1.minute + 1.second + 1.ms).toString(true)
             .mustEqual("+1.w+1.d+1.h+1.m+1.s+1.ms")

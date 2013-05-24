@@ -4,6 +4,34 @@ object string {
 
     implicit def converters(s: String) = new converters(s)
 
+    object IsInt {
+        def unapply(s: String): Option[Int] = s.asInt
+    }
+
+    object IsLong {
+        def unapply(s: String): Option[Long] = s.asLong
+    }
+
+    object IsShort {
+        def unapply(s: String): Option[Short] = s.asShort
+    }
+
+    object IsByte {
+        def unapply(s: String): Option[Byte] = s.asByte
+    }
+
+    object IsBoolean {
+        def unapply(s: String): Option[Boolean] = s.asBoolean
+    }
+
+    object IsFloat {
+        def unapply(s: String): Option[Float] = s.asFloat
+    }
+
+    object IsDouble {
+        def unapply(s: String): Option[Double] = s.asDouble
+    }
+
     private lazy val truths = Vector("true", "t", "yes", "y", "1")
     private lazy val falses = Vector("false", "f", "no", "n", "0")
 

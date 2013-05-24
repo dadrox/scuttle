@@ -18,6 +18,8 @@ case class Duration private[time] (milliseconds: Long) extends DurationInstance[
     override val ops = Duration
     def inMilliseconds() = milliseconds
 
+    def abs(): Duration = if (milliseconds < 0) -this else this
+    def unary_-(): Duration = Duration(-inMilliseconds)
     def *(scalar: Int): Duration = Duration(inMilliseconds * scalar)
     def *(scalar: Long): Duration = Duration(inMilliseconds * scalar)
     def /(scalar: Int): Duration = Duration(inMilliseconds / scalar)
@@ -26,12 +28,13 @@ case class Duration private[time] (milliseconds: Long) extends DurationInstance[
     override val toString: String = toString(false)
 
     def toString(terse: Boolean = false): String = {
+        val sign = if (milliseconds < 0) "-" else "+"
         val sb = new StringBuilder
-        var remainder = milliseconds
+        var remainder = math.abs(milliseconds)
         for (u <- TimeUnit.values) {
             val dividend = remainder / u.msPer
             if (dividend > 0) {
-                sb.append("+" + dividend + "." + (if (terse) u.short else u.name))
+                sb.append(sign + dividend + "." + (if (terse) u.short else u.name))
                 if (dividend > 1) sb.append("s")
                 remainder -= dividend * u.msPer
             }
