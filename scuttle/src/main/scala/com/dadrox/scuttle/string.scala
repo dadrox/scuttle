@@ -35,7 +35,7 @@ object string {
     private lazy val truths = Vector("true", "t", "yes", "y", "1")
     private lazy val falses = Vector("false", "f", "no", "n", "0")
 
-    private lazy val Integer = """([+-]?\d+)""".r
+    private lazy val Integer = """([+-])?(\d+)""".r
     private lazy val FloatingPoint = """([-+]?\d*\.?\d+)([eE][-+]?\d+)?""".r
 
     /** Provides various functions to convert a String to something else safely (i.e. Options, not exceptions)
@@ -52,8 +52,9 @@ object string {
         def notBlank: Option[String] = s.notEmpty.flatMap(_ => s.trim.notEmpty)
 
         private def asInteger(): Option[BigInt] = s match {
-            case Integer(i) => Some(BigInt(i))
-            case _          => None
+            case Integer("-", i)     => Some(BigInt("-" + i))
+            case Integer("+" | _, i) => Some(BigInt(i))
+            case _                   => None
         }
 
         def asInt(): Option[Int] = asInteger.flatMap {
