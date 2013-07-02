@@ -9,7 +9,6 @@ trait Enum {
      */
     def name(): String = "EnumVal"
 
-    def apply(name: String) = withName(name)
     def withName(name: String): Option[EnumVal] = values.find(_.name == name)
     def withNameIgnoringCase(name: String): Option[EnumVal] = values.find(_.name.equalsIgnoreCase(name))
 

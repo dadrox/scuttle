@@ -24,6 +24,8 @@ case class Duration private[time] (milliseconds: Long) extends DurationInstance[
     def *(scalar: Long): Duration = Duration(inMilliseconds * scalar)
     def /(scalar: Int): Duration = Duration(inMilliseconds / scalar)
     def /(scalar: Long): Duration = Duration(inMilliseconds / scalar)
+    def %(scalar: Int): Duration = Duration(inMilliseconds % scalar)
+    def %(scalar: Long): Duration = Duration(inMilliseconds % scalar)
 
     override val toString: String = toString(false)
 

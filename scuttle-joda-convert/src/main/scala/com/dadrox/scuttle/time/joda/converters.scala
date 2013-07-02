@@ -1,4 +1,4 @@
-package com.dadrox.scuttle.joda
+package com.dadrox.scuttle.time.joda
 
 import com.dadrox.scuttle.time.{ Duration, Time }
 import org.joda.time.{ DateTime => JodaTime, Duration => JodaDuration }

@@ -1,4 +1,4 @@
-package com.dadrox.scuttle.twitter
+package com.dadrox.scuttle.time.twitter
 
 import com.dadrox.scuttle.time.{ Duration, Time }
 import com.twitter.util.{ Duration => TwitterDuration, Time => TwitterTime }

@@ -1,4 +1,4 @@
-package com.dadrox.scuttle.joda
+package com.dadrox.scuttle.time.joda
 
 import org.fictus.Fictus
 import org.junit.Test
@@ -6,6 +6,10 @@ import com.dadrox.scuttle.time.{ Duration, Time }
 import org.joda.time.{ DateTime => JodaTime, Duration => JodaDuration }
 import org.joda.time.format.DateTimeFormat
 
+import com.dadrox.scuttle.time.joda.conversions.jodaDurationToScuttleDuration;
+import com.dadrox.scuttle.time.joda.conversions.jodaTimeToScuttleTime;
+import com.dadrox.scuttle.time.joda.conversions.scuttleDurationToJodaDuration;
+import com.dadrox.scuttle.time.joda.conversions.scuttleTimeToJodaTime;
 class ConvertersTest extends Fictus {
     @Test
     def foo {
@@ -29,7 +33,7 @@ class ConvertersTest extends Fictus {
 
     @Test
     def scuttleTimeToJoda_conversion {
-        import com.dadrox.scuttle.joda.conversions.scuttleTimeToJodaTime
+        import com.dadrox.scuttle.time.joda.conversions.scuttleTimeToJodaTime
 
         val scuttle: JodaTime = Time.Epoch
         val joda = new JodaTime(0)
@@ -40,7 +44,7 @@ class ConvertersTest extends Fictus {
 
     @Test
     def jodaTimeToScuttle_conversion {
-        import com.dadrox.scuttle.joda.conversions.jodaTimeToScuttleTime
+        import com.dadrox.scuttle.time.joda.conversions.jodaTimeToScuttleTime
 
         val scuttle = Time.Epoch
         val joda: Time = new JodaTime(0)
@@ -51,7 +55,7 @@ class ConvertersTest extends Fictus {
 
     @Test
     def scuttleDurationToJoda_conversion {
-        import com.dadrox.scuttle.joda.conversions.scuttleDurationToJodaDuration
+        import com.dadrox.scuttle.time.joda.conversions.scuttleDurationToJodaDuration
 
         val scuttle: JodaDuration = Duration.fromSeconds(3)
         val joda = JodaDuration.millis(3000)
@@ -62,7 +66,7 @@ class ConvertersTest extends Fictus {
 
     @Test
     def jodaDurationToScuttle_conversion {
-        import com.dadrox.scuttle.joda.conversions.jodaDurationToScuttleDuration
+        import com.dadrox.scuttle.time.joda.conversions.jodaDurationToScuttleDuration
 
         val scuttle = Duration.fromSeconds(3)
         val joda: Duration = JodaDuration.millis(3000)
@@ -73,7 +77,7 @@ class ConvertersTest extends Fictus {
 
     @Test
     def scuttleTimeToJoda_converter {
-        import com.dadrox.scuttle.joda.converters.scuttleTimeToJodaTime
+        import com.dadrox.scuttle.time.joda.converters.scuttleTimeToJodaTime
 
         val scuttle = Time.Epoch.asJoda
         val joda = new JodaTime(0)
@@ -84,7 +88,7 @@ class ConvertersTest extends Fictus {
 
     @Test
     def jodaTimeToScuttle_converter {
-        import com.dadrox.scuttle.joda.converters.jodaTimeToScuttleTime
+        import com.dadrox.scuttle.time.joda.converters.jodaTimeToScuttleTime
 
         val scuttle = Time.Epoch
         val joda = new JodaTime(0).asScuttle
@@ -94,7 +98,7 @@ class ConvertersTest extends Fictus {
     }
     @Test
     def scuttleDurationToJoda_converter {
-        import com.dadrox.scuttle.joda.converters.scuttleDurationToJodaDuration
+        import com.dadrox.scuttle.time.joda.converters.scuttleDurationToJodaDuration
 
         val scuttle = Duration.fromSeconds(3).asJoda
         val joda = JodaDuration.millis(3000)
@@ -105,7 +109,7 @@ class ConvertersTest extends Fictus {
 
     @Test
     def jodaDurationToScuttle_converter {
-        import com.dadrox.scuttle.joda.converters.jodaDurationToScuttleDuration
+import com.dadrox.scuttle.time.joda.converters.jodaDurationToScuttleDuration
 
         val scuttle = Duration.fromSeconds(3)
         val joda = JodaDuration.millis(3000).asScuttle

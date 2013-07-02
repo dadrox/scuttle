@@ -2,19 +2,17 @@ package com.dadrox.scuttle.time
 
 import org.junit.Test
 import org.fictus.Fictus
-import com.dadrox.scuttle.time.converters.intToDuration
+import com.dadrox.scuttle.time.conversions.intToDuration
 
 class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
     @Test
     def int_implicits {
-        import com.dadrox.scuttle.time.converters.intToDuration
-
         3.seconds mustEqual Duration.fromSeconds(3)
     }
 
     @Test
     def long_implicits {
-        import com.dadrox.scuttle.time.converters.longToDuration
+        import com.dadrox.scuttle.time.conversions.longToDuration
 
         3L.seconds mustEqual Duration.fromSeconds(3)
     }

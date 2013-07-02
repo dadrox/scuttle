@@ -1,6 +1,6 @@
 package com.dadrox.scuttle.time
 
-object converters {
+object conversions {
     implicit def intToDuration(value: Int) = new AugmentedInteger(value)
     implicit def longToDuration(value: Long) = new AugmentedInteger(value)
 
@@ -22,9 +22,7 @@ object converters {
         def weeks() = Duration.fromWeeks(value)
         def week() = weeks
     }
-}
 
-object conversions {
     implicit def javaDateToTime(date: java.util.Date): Time = Time.fromDate(date)
-    implicit def timeToJavaDate(time: Time):java.util.Date = time.toDate
+    implicit def timeToJavaDate(time: Time): java.util.Date = time.toDate
 }

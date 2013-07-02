@@ -3,7 +3,7 @@ package com.dadrox.scuttle.time
 import org.fictus.Fictus
 import org.junit.Test
 import java.util.Date
-import com.dadrox.scuttle.time.converters.intToDuration
+import com.dadrox.scuttle.time.conversions.intToDuration
 
 object TimeTest {
     // 20130520 @ exactly noon UTC
@@ -11,6 +11,7 @@ object TimeTest {
     val TimeNow = Time.fromMilliseconds(Now)
     val Epoch = Time.Epoch
 }
+
 class TimeTest extends DurationSourceTestBase(Time) with Fictus {
     import TimeTest._
 
@@ -63,6 +64,33 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
     @Test
     def subtracting {
         (TimeNow - 3.seconds) mustEqual Time.fromMilliseconds(Now - 3 * 1000)
+    }
+
+    @Test
+    def floor {
+        (TimeNow + 30.minutes) floor 1.hour mustEqual TimeNow
+        (TimeNow + 30.minutes) floor 12.hours mustEqual TimeNow
+        TimeNow floor 12.hours mustEqual TimeNow
+        TimeNow floor 5.hours mustEqual TimeNow - 2.hours
+    }
+
+    @Test
+    def ceiling {
+        (TimeNow + 30.minutes) ceiling 1.hour mustEqual TimeNow + 1.hour
+        (TimeNow + 30.minutes) ceiling 12.hours mustEqual TimeNow + 12.hours
+        TimeNow ceiling 12.hours mustEqual TimeNow + 12.hours
+        TimeNow ceiling 5.hours mustEqual TimeNow + 3.hours
+    }
+
+    @Test
+    def midnight {
+        TimeNow.midnight0000 mustEqual TimeNow - 12.hours
+        TimeNow.midnight2400 mustEqual TimeNow + 12.hours
+        (TimeNow - 12.hours).midnight0000 mustEqual TimeNow - 12.hours
+        (TimeNow - 12.hours).midnight2400 mustEqual TimeNow + 12.hours
+
+        (TimeNow + 12.hours).midnight0000 mustEqual TimeNow + 12.hours
+        (TimeNow + 12.hours).midnight2400 mustEqual TimeNow + 36.hours
     }
 
     @Test
