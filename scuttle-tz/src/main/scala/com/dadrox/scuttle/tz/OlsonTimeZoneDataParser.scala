@@ -5,7 +5,7 @@ import scala.io.BufferedSource
 import scala.util.matching.Regex
 import com.dadrox.scuttle.string._
 import com.dadrox.scuttle.time.Duration
-import com.dadrox.scuttle.time.converters._
+import com.dadrox.scuttle.time.conversions._
 
 case class ZoneContinuation(offset: Option[Duration], rules: Option[String], format: Option[String], untilYear: Option[String])
 

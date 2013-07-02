@@ -1,9 +1,14 @@
 import sbt._
 import Keys._
 
-trait Version {
+object Data {
   val majorVersion = "0.4"
   val snapshot = true
+  val org = "com.dadrox"
+}
+
+trait Version {
+  import Data._
   def currentVersion(versionExtra: Option[String] = None) = majorVersion + (versionExtra match {
     case Some(extra) => "-"+extra
     case None =>        ""
@@ -16,7 +21,7 @@ object Settings extends Version {
   def commonSettings(versionExtra: Option[String] = None) = {
     val fullVersion = currentVersion(versionExtra)
     Project.defaultSettings ++ Seq(
-      organization := "com.dadrox",
+      organization := Data.org,
       version := fullVersion,
       crossScalaVersions in ThisBuild := Seq("2.9.1", "2.9.2", "2.9.3", "2.10.0", "2.10.1"),
       scalaVersion in ThisBuild := "2.9.2",
