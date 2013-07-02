@@ -7,8 +7,8 @@ import com.dadrox.scuttle.time.conversions.intToDuration
 
 object TimeTest {
     // 20130520 @ exactly noon UTC
-    val Now = 1369051200000L
-    val TimeNow = Time.fromMilliseconds(Now)
+    val NowMs = 1369051200000L
+    val Now = Time.fromMilliseconds(NowMs)
     val Epoch = Time.Epoch
 }
 
@@ -17,16 +17,23 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
 
     @Test
     def date_parsing {
-        Time.parse("MM/dd/yyyy HH:mm:ss Z", "5/20/2013 12:00:00 -0600") mustEqual Some(TimeNow + 6.hours)
-        Time.parse("MM/dd/yyyy HH:mm:ss", "5/20/2013 12:00:00 -0600") mustEqual Some(TimeNow)
+        Time.parse("MM/dd/yyyy HH:mm:ss Z", "5/20/2013 12:00:00 -0600") mustEqual Some(Now + 6.hours)
+        Time.parse("MM/dd/yyyy HH:mm:ss", "5/20/2013 12:00:00 -0600") mustEqual Some(Now)
 
-        Time.parse("MM/dd/yyyy HH:mm:ss a", "5/20/2013 12:00:00 PM") mustEqual Some(TimeNow)
-        Time.parse("MM/dd/yyyy HH:mm:ss", "5/20/2013 12:00:00 PM") mustEqual Some(TimeNow)
-        Time.parse("MM/dd/yyyy", "5/20/2013 12:00:00 PM") mustEqual Some(TimeNow - 12.hours)
+        Time.parse("MM/dd/yyyy HH:mm:ss a", "5/20/2013 12:00:00 PM") mustEqual Some(Now)
+        Time.parse("MM/dd/yyyy HH:mm:ss", "5/20/2013 12:00:00 PM") mustEqual Some(Now)
+        Time.parse("MM/dd/yyyy", "5/20/2013 12:00:00 PM") mustEqual Some(Now - 12.hours)
         Time.parse("", "5/20/2013 12:00:00 PM") mustEqual None
 
         Time.parse("", "") mustEqual None
         Time.parse("MM/dd/yyyy", "") mustEqual None
+    }
+
+    @Test
+    def at {
+        Time.at(Now.toString) mustEqual Now
+        Time at "20130520 12:00:00 -0000" mustEqual Now
+        Time at "20130520 12:00:00 -0600" mustEqual Now + 6.hours
     }
 
     @Test
@@ -58,47 +65,47 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
 
     @Test
     def adding {
-        (TimeNow + 3.seconds) mustEqual Time.fromMilliseconds(Now + 3 * 1000)
+        (Now + 3.seconds) mustEqual Time.fromMilliseconds(NowMs + 3 * 1000)
     }
 
     @Test
     def subtracting {
-        (TimeNow - 3.seconds) mustEqual Time.fromMilliseconds(Now - 3 * 1000)
+        (Now - 3.seconds) mustEqual Time.fromMilliseconds(NowMs - 3 * 1000)
     }
 
     @Test
     def floor {
-        (TimeNow + 30.minutes) floor 1.hour mustEqual TimeNow
-        (TimeNow + 30.minutes) floor 12.hours mustEqual TimeNow
-        TimeNow floor 12.hours mustEqual TimeNow
-        TimeNow floor 5.hours mustEqual TimeNow - 2.hours
+        (Now + 30.minutes) floor 1.hour mustEqual Now
+        (Now + 30.minutes) floor 12.hours mustEqual Now
+        Now floor 12.hours mustEqual Now
+        Now floor 5.hours mustEqual Now - 2.hours
     }
 
     @Test
     def ceiling {
-        (TimeNow + 30.minutes) ceiling 1.hour mustEqual TimeNow + 1.hour
-        (TimeNow + 30.minutes) ceiling 12.hours mustEqual TimeNow + 12.hours
-        TimeNow ceiling 12.hours mustEqual TimeNow + 12.hours
-        TimeNow ceiling 5.hours mustEqual TimeNow + 3.hours
+        (Now + 30.minutes) ceiling 1.hour mustEqual Now + 1.hour
+        (Now + 30.minutes) ceiling 12.hours mustEqual Now + 12.hours
+        Now ceiling 12.hours mustEqual Now + 12.hours
+        Now ceiling 5.hours mustEqual Now + 3.hours
     }
 
     @Test
     def midnight {
-        TimeNow.midnight0000 mustEqual TimeNow - 12.hours
-        TimeNow.midnight2400 mustEqual TimeNow + 12.hours
-        (TimeNow - 12.hours).midnight0000 mustEqual TimeNow - 12.hours
-        (TimeNow - 12.hours).midnight2400 mustEqual TimeNow + 12.hours
+        Now.midnight0000 mustEqual Now - 12.hours
+        Now.midnight2400 mustEqual Now + 12.hours
+        (Now - 12.hours).midnight0000 mustEqual Now - 12.hours
+        (Now - 12.hours).midnight2400 mustEqual Now + 12.hours
 
-        (TimeNow + 12.hours).midnight0000 mustEqual TimeNow + 12.hours
-        (TimeNow + 12.hours).midnight2400 mustEqual TimeNow + 36.hours
+        (Now + 12.hours).midnight0000 mustEqual Now + 12.hours
+        (Now + 12.hours).midnight2400 mustEqual Now + 36.hours
     }
 
     @Test
     def fake_time {
-        FakeTime.set(Now)
+        FakeTime.set(NowMs)
         val now = FakeTime.now
-        now mustEqual TimeNow
-        (now + 3.seconds) mustEqual Time.fromMilliseconds(Now + 3 * 1000)
+        now mustEqual Now
+        (now + 3.seconds) mustEqual Time.fromMilliseconds(NowMs + 3 * 1000)
 
         FakeTime.set(0)
         Time.Epoch mustEqual FakeTime.now
@@ -106,13 +113,13 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
 
     @Test
     def since {
-        TimeNow since Epoch mustEqual Duration.fromMilliseconds(Now)
-        TimeNow - 10.minutes since TimeNow - 1.day mustEqual 23.hours + 50.minutes
+        Now since Epoch mustEqual Duration.fromMilliseconds(NowMs)
+        Now - 10.minutes since Now - 1.day mustEqual 23.hours + 50.minutes
     }
 
     @Test
     def until {
-        Epoch until TimeNow mustEqual Duration.fromMilliseconds(Now)
-        TimeNow until TimeNow + 1.day mustEqual 1.day
+        Epoch until Now mustEqual Duration.fromMilliseconds(NowMs)
+        Now until Now + 1.day mustEqual 1.day
     }
 }
