@@ -2,8 +2,8 @@ import sbt._
 import Keys._
 
 object Data {
-  val majorVersion = "0.4"
-  val snapshot = false
+  val majorVersion = "0.5"
+  val snapshot = true
   val org = "com.dadrox"
 }
 
