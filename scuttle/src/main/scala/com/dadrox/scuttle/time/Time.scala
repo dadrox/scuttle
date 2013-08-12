@@ -25,7 +25,7 @@ trait TimeSource extends DurationSource[Time] {
     def parse(pattern: String, date: String): Option[Time] = {
         try Some(new TimeFormat(pattern).parse(date))
         catch {
-            case _ => None
+            case _: Exception => None
         }
     }
 
