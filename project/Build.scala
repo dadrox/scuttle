@@ -23,7 +23,7 @@ object Settings extends Version {
     Project.defaultSettings ++ Seq(
       organization := Data.org,
       version := fullVersion,
-      crossScalaVersions in ThisBuild := Seq("2.9.1", "2.9.2", "2.9.3", "2.10.0", "2.10.1"),
+      crossScalaVersions in ThisBuild := Seq("2.9.2", "2.10.2"),
       scalaVersion in ThisBuild := "2.9.2",
       packageOptions := Seq(Package.ManifestAttributes("Implementation-Version" -> fullVersion)),
       testFrameworks := Seq(testFramework),
@@ -41,7 +41,7 @@ object ScuttleBuild extends Build {
   object V {
     val Joda = "2.1"
     val Olson = "2013c"
-    val TwitterUtil = "5.2.0"
+    val TwitterUtil = "6.3.8"
   }
 
     lazy val root = Project(
@@ -56,23 +56,20 @@ object ScuttleBuild extends Build {
         id = "scuttle",
         base = file("scuttle"),
 	settings = Settings.commonSettings() ++ Seq(
-          name := "scuttle"
         ))
 
     lazy val scuttleTwitterConvert = Project(
         id = "scuttle-twitter-convert",
         base = file("scuttle-twitter-convert"),
         settings = Settings.commonSettings(Some(V.TwitterUtil)) ++ Seq(
-          name := "scuttle-twitter-convert",
           libraryDependencies ++= Seq(
-            "com.twitter" % "util-core" % V.TwitterUtil)
+            "com.twitter" %% "util-core" % V.TwitterUtil)
         )) dependsOn(scuttle)
 
     lazy val scuttleJodaConvert = Project(
         id = "scuttle-joda-convert",
         base = file("scuttle-joda-convert"),
         settings = Settings.commonSettings(Some(V.Joda)) ++ Seq(
-          name := "scuttle-joda-convert",
           libraryDependencies ++= Seq(
             "org.joda" % "joda-convert" % "1.2" % "provided",
             "joda-time" % "joda-time" % V.Joda % "provided")
@@ -82,6 +79,7 @@ object ScuttleBuild extends Build {
         id = "scuttle-tz",
         base = file("scuttle-tz"),
         settings = Settings.commonSettings(Some(V.Olson)) ++ Seq(
-          name := "scuttle-tz"
+          publish := false,
+          publishLocal := false
         )) dependsOn(scuttle)
 }
