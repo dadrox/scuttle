@@ -3,7 +3,7 @@ import Keys._
 
 object Data {
   val majorVersion = "0.5"
-  val snapshot = true
+  val snapshot = false
   val org = "com.dadrox"
 }
 
@@ -44,42 +44,39 @@ object ScuttleBuild extends Build {
     val TwitterUtil = "6.3.8"
   }
 
-    lazy val root = Project(
-        id = "root",
-        base = file("."),
-	settings = Settings.commonSettings() ++ Seq(
-          publish := false,
-          publishLocal := false),
-	aggregate = Seq(scuttle, scuttleTwitterConvert, scuttleJodaConvert, scuttleTimeZone))
+  val DisablePublish = Seq(publish := false, publishLocal := false)
 
-    lazy val scuttle = Project(
-        id = "scuttle",
-        base = file("scuttle"),
-	settings = Settings.commonSettings() ++ Seq(
-        ))
+  lazy val root = Project(
+    id = "root",
+    base = file("."),
+    settings = Settings.commonSettings() ++ DisablePublish,
+    aggregate = Seq(scuttle, scuttleTwitterConvert, scuttleJodaConvert, scuttleTimeZone))
 
-    lazy val scuttleTwitterConvert = Project(
-        id = "scuttle-twitter-convert",
-        base = file("scuttle-twitter-convert"),
-        settings = Settings.commonSettings(Some(V.TwitterUtil)) ++ Seq(
-          libraryDependencies ++= Seq(
-            "com.twitter" %% "util-core" % V.TwitterUtil)
-        )) dependsOn(scuttle)
+  lazy val scuttle = Project(
+    id = "scuttle",
+    base = file("scuttle"),
+    settings = Settings.commonSettings() ++ Seq(
+    ))
 
-    lazy val scuttleJodaConvert = Project(
-        id = "scuttle-joda-convert",
-        base = file("scuttle-joda-convert"),
-        settings = Settings.commonSettings(Some(V.Joda)) ++ Seq(
-          libraryDependencies ++= Seq(
-            "org.joda" % "joda-convert" % "1.2" % "provided",
-            "joda-time" % "joda-time" % V.Joda % "provided")
-        )) dependsOn(scuttle)
+  lazy val scuttleTwitterConvert = Project(
+    id = "scuttle-twitter-convert",
+    base = file("scuttle-twitter-convert"),
+    settings = Settings.commonSettings(Some(V.TwitterUtil)) ++ Seq(
+      libraryDependencies ++= Seq(
+        "com.twitter" %% "util-core" % V.TwitterUtil)
+    )) dependsOn(scuttle)
 
-    lazy val scuttleTimeZone = Project(
-        id = "scuttle-tz",
-        base = file("scuttle-tz"),
-        settings = Settings.commonSettings(Some(V.Olson)) ++ Seq(
-          publish := false,
-          publishLocal := false
-        )) dependsOn(scuttle)
+  lazy val scuttleJodaConvert = Project(
+    id = "scuttle-joda-convert",
+    base = file("scuttle-joda-convert"),
+    settings = Settings.commonSettings(Some(V.Joda)) ++ Seq(
+      libraryDependencies ++= Seq(
+        "org.joda" % "joda-convert" % "1.2" % "provided",
+        "joda-time" % "joda-time" % V.Joda % "provided")
+    )) dependsOn(scuttle)
+
+  lazy val scuttleTimeZone = Project(
+    id = "scuttle-tz",
+    base = file("scuttle-tz"),
+    settings = Settings.commonSettings(Some(V.Olson)) ++ DisablePublish) dependsOn(scuttle)
 }
