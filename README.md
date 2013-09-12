@@ -50,13 +50,13 @@ The convert libraries allow conversion to and from Twitter or Joda times and dur
 
 ### scuttle
 
-    libraryDependencies += "com.dadrox" % "scuttle" % "0.3"
+    libraryDependencies += "com.dadrox" %% "scuttle" % "0.5"
 
 ### scuttle convert libs
 
-    "com.dadrox" % "scuttle-twitter-convert" % "0.3"
+    "com.dadrox" %% "scuttle-twitter-convert" % "0.5-6.3.8"
 
-    "com.dadrox" % "scuttle-joda-convert" % "0.3"
+    "com.dadrox" %% "scuttle-joda-convert" % "0.5-2.1"
 
 ## License
 
