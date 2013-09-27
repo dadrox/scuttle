@@ -80,8 +80,11 @@ object ljkakafsh extends App {
 }
 
 class TimeFormat(pattern: String) {
-    private val utcFormat = new java.text.SimpleDateFormat(pattern)
-    utcFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
+    private def utcFormat = {
+        val format = new java.text.SimpleDateFormat(pattern)
+        format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
+        format
+    }
 
     def format[A <: TimeInstance[A]](time: TimeInstance[A]): String = utcFormat.format(time.toDate)
 
