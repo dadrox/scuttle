@@ -41,10 +41,10 @@ trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
      */
     def format(pattern: String): String = new TimeFormat(pattern).format(this)
 
-    def since(then: A): Duration = this - then
-    def until(then: A): Duration = then - this
+    def since(when: A): Duration = this - when
+    def until(when: A): Duration = when - this
 
-    def -(then: TimeInstance[A]): Duration = Duration(inMilliseconds - then.inMilliseconds)
+    def -(when: TimeInstance[A]): Duration = Duration(inMilliseconds - when.inMilliseconds)
 
     def floor(d: Duration) = Time.fromMilliseconds(inMilliseconds / d.inMilliseconds * d.inMilliseconds)
     def ceiling(d: Duration) = floor(d) + d

@@ -88,7 +88,7 @@ class TrivialCaseClassEnumTest extends Fictus {
     }
 
     @Test
-    def no_actual_exhaustive_match_if_you_seal_both_the_case_class_and_a_trait_ALL_LIES { // kinda verbose :(
+    def no_actual_exhaustive_match_if_you_seal_both_the_case_class_and_a_trait_ALL_LIES { // AND verbose :(
 
         object SealedCaseClassEnumWithSealedTrait extends Enum {
             sealed trait Sealed

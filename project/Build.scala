@@ -29,9 +29,9 @@ object Settings extends Version {
       testFrameworks := Seq(testFramework),
       testListeners <+= target map (t => new com.dadrox.sbt.test.reports.Xml(t getName)),
       libraryDependencies in ThisBuild ++= Seq(
-          "junit" % "junit-dep" % "4.10" % "test->default",
-          "org.fictus" %% "fictus" % "0.6" % "test",
-          "com.dadrox" % "sbt-junit" % "0.3" % "test")
+          "junit" % "junit-dep" % "4.11" % "test->default",
+          "org.fictus" %% "fictus" % "0.8" % "test",
+          "com.dadrox" % "sbt-junit" % "0.3.1" % "test")
     )
   }
 }

@@ -22,7 +22,7 @@ object CommonFailuresResultTest {
 
     case class User()
     trait Backend {
-        def fetchUser(): Result[Option[User], Failure]
+        def fetchUser(): Response[Option[User]]
     }
 
     class FrontendService(backend: Backend) {
