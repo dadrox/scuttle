@@ -40,18 +40,18 @@ object RealWorldResultTest {
         // very verbose and cumbersome :/
         def userByMatch(): Result[User, FrontendFailure] = backend.fetchUser match {
             case Success(Some(user)) => Success(user)
-            case Success(None)       => FrontendFailure(HttpStatus.NotFound, "User not found :(")
+            case Success(None)       => Fail(FrontendFailure(HttpStatus.NotFound, "User not found :("))
             case Fail(BackendFailure(reason, desc, cause)) => reason match {
-                case BackendFailure.Reason.Timeout         => FrontendFailure(HttpStatus.GatewayTimeout, desc, cause)
-                case BackendFailure.Reason.JsonUnparseable => FrontendFailure(HttpStatus.BadGateway, desc, cause)
+                case BackendFailure.Reason.Timeout         => Fail(FrontendFailure(HttpStatus.GatewayTimeout, desc, cause))
+                case BackendFailure.Reason.JsonUnparseable => Fail(FrontendFailure(HttpStatus.BadGateway, desc, cause))
             }
         }
 
         // a little better?
         def userByMatch2(): Result[User, FrontendFailure] = backend.fetchUser match {
             case Success(Some(user))                       => Success(user)
-            case Success(None)                             => FrontendFailure(HttpStatus.NotFound, "User not found :(")
-            case Fail(BackendFailure(reason, desc, cause)) => FrontendFailure(backendFailureReason2frontendReason(reason), "whoops", cause)
+            case Success(None)                             => Fail(FrontendFailure(HttpStatus.NotFound, "User not found :("))
+            case Fail(BackendFailure(reason, desc, cause)) => Fail(FrontendFailure(backendFailureReason2frontendReason(reason), "whoops", cause))
         }
 
         def backendFailureReason2frontendReason(reason: BackendFailure.Reason.EnumVal) = reason match {

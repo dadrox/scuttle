@@ -3,16 +3,6 @@ package com.dadrox.scuttle
 import org.junit.Test
 import org.fictus.Fictus
 
-/*
- * To make dealing with the type a bit easier, define an implicit that convert the actual failure data case class to a Fail.
- * Also you can define a type that hides the Fail type completely for a given context.
- */
-object Magic {
-    implicit def fail2Fail(f: FailureData): Fail[FailureData] = Fail(FailureData(f.status, f.description, f.cause))
-
-    type Response[A] = Result[A, FailureData]
-}
-
 object MatchFail {
     def unapply(f: Result[_, FailureData]) = f match {
         case Fail(FailureData(s, d, t)) => Some((s, d, t))
@@ -23,7 +13,6 @@ object MatchFail {
 case class FailureData(status: Int, description: String, cause: Option[Throwable] = None)
 
 class ResultTest extends Fictus {
-    import Magic._
 
     trait Io {
         def invoke()
@@ -37,7 +26,7 @@ class ResultTest extends Fictus {
 
     @Test
     def for_first_fail_is_the_result {
-        val other: Response[Int] = FailureData(503, "2")
+        val other: Result[Int, FailureData] = FailureData(503, "2")
         val result = for {
             a <- failed
             b <- other

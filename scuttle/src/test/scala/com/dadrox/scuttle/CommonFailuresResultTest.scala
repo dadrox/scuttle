@@ -22,29 +22,29 @@ object CommonFailuresResultTest {
 
     case class User()
     trait Backend {
-        def fetchUser(): Response[Option[User]]
+        def fetchUser(): Result[Option[User], Failure]
     }
 
     class FrontendService(backend: Backend) {
         def userByMatch(): Result[User, Failure] = backend.fetchUser match {
             case Success(Some(user)) => Success(user)
-            case Success(None)       => Failure(HttpStatus.NotFound, "User not found :(")
-            case failure @ Fail(_)   => failure
+            case Success(None)       => Fail(Failure(HttpStatus.NotFound, "User not found :("))
+            case Fail(f)             => Fail(f)
         }
 
-        def userByFlatMap(): Response[User] = {
+        def userByFlatMap(): Result[User, Failure] = {
             backend.fetchUser.flatMap {
                 case Some(user) => Success(user)
-                case None       => Failure(HttpStatus.NotFound, "User not found :(")
+                case None       => Fail(Failure(HttpStatus.NotFound, "User not found :("))
             }
         }
 
-        def userByFlatMap2(): Response[User] = {
+        def userByFlatMap2(): Result[User, Failure] = {
             import com.dadrox.scuttle.Result.converters._
             backend.fetchUser.flatMap { _.asResult(Fail(Failure(HttpStatus.NotFound, "User not found :("))) }
         }
 
-        def userByForComprehension(): Response[User] = {
+        def userByForComprehension(): Result[User, Failure] = {
             import com.dadrox.scuttle.Result.converters._
             for {
                 userOpt <- backend.fetchUser
