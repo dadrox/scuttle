@@ -52,6 +52,25 @@ sealed abstract class Result[+S, +F] { self =>
         case Fail(_)    => false
     }
 
+    // map both
+    def transform[S1, F1](sf: S => S1, ff: F => F1): Result[S1, F1] = this match {
+        case Fail(f)    => Fail(ff(f))
+        case Success(s) => Success(sf(s))
+    }
+
+
+    // map for the failure
+    def mapFail[S1 >: S, F1](fn: F => F1): Result[S1, F1] = this match {
+        case Fail(f)    => Fail(fn(f))
+        case Success(s) => Success(s)
+    }
+
+    // flatMap for the failure
+    def flatMapFail[S1 >: S, F1](fn: F => Result[S1, F1]): Result[S1, F1] = this match {
+        case Fail(f)    => fn(f)
+        case Success(s) => Success(s)
+    }
+
     // like map for the failure
     def rescue[S1 >: S, F1 >: F](rescueFail: PartialFunction[F, S1]): Result[S1, F] = this match {
         case Fail(f) if (rescueFail.isDefinedAt(f)) => Success(rescueFail(f))
