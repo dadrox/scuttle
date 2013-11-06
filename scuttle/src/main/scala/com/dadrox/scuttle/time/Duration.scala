@@ -27,18 +27,22 @@ case class Duration private[time] (milliseconds: Long) extends DurationInstance[
     def %(scalar: Int): Duration = Duration(inMilliseconds % scalar)
     def %(scalar: Long): Duration = Duration(inMilliseconds % scalar)
 
-    override val toString: String = toString(false)
+    override val toString: String = toString(terse = false)
 
-    def toString(terse: Boolean = false): String = {
+    def toString(
+        maxTimeUnit: TimeUnit.EnumVal = TimeUnit.Week,
+        terse: Boolean = false) = {
+        var remainder = math.abs(if (milliseconds == Long.MinValue) milliseconds + 1 else milliseconds)
         val sign = if (milliseconds < 0) "-" else "+"
         val sb = new StringBuilder
-        var remainder = math.abs(milliseconds)
-        for (u <- TimeUnit.values) {
+        for (
+            u <- TimeUnit.values.flatMap { d => if (d.msPer > maxTimeUnit.msPer) None else Some(d) }
+        ) {
             val dividend = remainder / u.msPer
             if (dividend > 0) {
                 sb.append(sign + dividend + "." + (if (terse) u.short else u.name))
-                if (dividend > 1) sb.append("s")
                 remainder -= dividend * u.msPer
+                if (!terse && dividend > 1) sb.append("s")
             }
         }
         sb.toString

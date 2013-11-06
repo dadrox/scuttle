@@ -2,7 +2,7 @@ package com.dadrox.scuttle.time
 
 import org.junit.Test
 import org.fictus.Fictus
-import com.dadrox.scuttle.time.conversions.intToDuration
+import com.dadrox.scuttle.time._
 
 class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
     @Test
@@ -12,9 +12,45 @@ class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
 
     @Test
     def long_implicits {
-        import com.dadrox.scuttle.time.conversions.longToDuration
-
         3L.seconds mustEqual Duration.fromSeconds(3)
+    }
+
+    @Test
+    def implicit_scala_duration_conversions {
+        import com.dadrox.scuttle.time.conversions._
+        import scala.concurrent.duration.FiniteDuration
+        import scala.concurrent.duration.{ Duration => ScalaDuration }
+
+        val scalaFiniteDuration = FiniteDuration(1, scala.concurrent.duration.MILLISECONDS)
+        val scalaDuration = ScalaDuration(1, scala.concurrent.duration.MILLISECONDS)
+        val scuttleDuration = 1.ms
+
+        (scalaFiniteDuration: Duration) mustEqual scuttleDuration
+        (scalaDuration: Duration) mustEqual scuttleDuration
+        (scuttleDuration: scala.concurrent.duration.Duration) mustEqual scalaDuration
+
+        shouldThrow[IllegalArgumentException] {
+            (ScalaDuration.Inf: Duration) mustEqual Duration.Max()
+        }
+    }
+
+    @Test
+    def explicit_scala_duration_conversions {
+        import com.dadrox.scuttle.time._
+        import scala.concurrent.duration.FiniteDuration
+        import scala.concurrent.duration.{ Duration => ScalaDuration }
+
+        val scalaFiniteDuration = FiniteDuration(1, scala.concurrent.duration.MILLISECONDS)
+        val scalaDuration = ScalaDuration(1, scala.concurrent.duration.MILLISECONDS)
+        val scuttleDuration = 1.ms
+
+        scalaFiniteDuration.asScuttle mustEqual scuttleDuration
+        scalaDuration.asScuttle mustEqual scuttleDuration
+        scuttleDuration.asScala mustEqual scalaDuration
+
+        shouldThrow[IllegalArgumentException] {
+            ScalaDuration.Inf.asScuttle mustEqual Duration.Max()
+        }
     }
 
     @Test
@@ -66,8 +102,12 @@ class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
         (-(1.week + 1.day + 1.hour + 1.minute + 1.second + 1.ms)).toString
             .mustEqual("-1.week-1.day-1.hour-1.minute-1.second-1.millisecond")
 
-        (1.week + 1.day + 1.hour + 1.minute + 1.second + 1.ms).toString(true)
+        (1.week + 1.day + 1.hour + 1.minute + 1.second + 1.ms).toString(terse = true)
             .mustEqual("+1.w+1.d+1.h+1.m+1.s+1.ms")
+
+        Duration.Min.toString mustEqual "-15250284452.weeks-3.days-7.hours-12.minutes-55.seconds-807.milliseconds"
+        Duration.Max.toString mustEqual "+15250284452.weeks+3.days+7.hours+12.minutes+55.seconds+807.milliseconds"
+        Duration.Max.toString(TimeUnit.Millisecond) mustEqual "+9223372036854775807.milliseconds"
 
         1000.ms.toString mustEqual "+1.second"
         60.seconds.toString mustEqual "+1.minute"

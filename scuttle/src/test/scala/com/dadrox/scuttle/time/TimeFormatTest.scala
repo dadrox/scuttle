@@ -3,7 +3,7 @@ package com.dadrox.scuttle.time
 import org.fictus.Fictus
 import org.junit.Test
 import java.util.Date
-import com.dadrox.scuttle.time.conversions.intToDuration
+import com.dadrox.scuttle.time._
 
 object TimeFormatTest {
     // 20130520 @ exactly noon UTC

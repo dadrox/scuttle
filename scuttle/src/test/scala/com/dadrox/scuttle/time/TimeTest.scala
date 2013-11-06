@@ -3,7 +3,6 @@ package com.dadrox.scuttle.time
 import org.fictus.Fictus
 import org.junit.Test
 import java.util.Date
-import com.dadrox.scuttle.time.conversions.intToDuration
 
 object TimeTest {
     // 20130520 @ exactly noon UTC
@@ -52,9 +51,17 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
     }
 
     @Test
+    def explicit_java_date_conversions {
+        val epoch = Time.Epoch
+        val date = new Date(0)
+
+        date.asScuttle() mustEqual epoch
+        epoch.asJava() mustEqual date
+    }
+
+    @Test
     def implicit_java_date_conversions {
-        import com.dadrox.scuttle.time.conversions.javaDateToTime
-        import com.dadrox.scuttle.time.conversions.timeToJavaDate
+        import com.dadrox.scuttle.time.conversions._
 
         val epoch = Time.Epoch
         val date = new Date(0)
