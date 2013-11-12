@@ -1,16 +1,20 @@
-package com.dadrox.scuttle
+package com.dadrox.scuttle.result
 
 import org.junit.Test
 import org.fictus.Fictus
 
 object MatchFail {
-    def unapply(f: Result[_, FailureData]) = f match {
-        case Fail(FailureData(s, d, t)) => Some((s, d, t))
-        case _                          => None
+    def unapply(f: Result[_]) = f match {
+        case Failure(FailureData(s, d, t)) => Some((s, d, t))
+        case _                             => None
     }
 }
 
-case class FailureData(status: Int, description: String, cause: Option[Throwable] = None)
+case class FailureData(status: Int, message: String, cause: Option[Throwable] = None) extends Failure.Detail {
+    val reason = new Failure.Reason {
+        val name = status.toString
+    }
+}
 
 class ResultTest extends Fictus {
 
@@ -21,12 +25,12 @@ class ResultTest extends Fictus {
     val io = mock[Io]
 
     val failureData = FailureData(404, "")
-    val rawFail = Fail(failureData)
-    val failed: Result[Int, FailureData] = rawFail
+    val rawFail = Failure(failureData)
+    val failed: Result[Int] = rawFail
 
     @Test
     def for_first_fail_is_the_result {
-        val other: Result[Int, FailureData] = FailureData(503, "2")
+        val other: Result[Int] = Failure(FailureData(503, "2"))
         val result = for {
             a <- failed
             b <- other
@@ -69,8 +73,8 @@ class ResultTest extends Fictus {
         }
 
         failed match {
-            case Fail(FailureData(_, _, _)) =>
-            case _                          => fail("Should have matched")
+            case Failure(FailureData(_, _, _)) =>
+            case _                             => fail("Should have matched")
         }
 
         failed match {
@@ -132,15 +136,15 @@ class ResultTest extends Fictus {
     @Test
     def rescue_Fail {
         failed.rescue {
-            case `failureData` => 2
+            case Failure(`failureData`) => 2
         } mustEqual Success(2)
 
         failed.rescue {
-            case `failureData` => "win"
+            case Failure(`failureData`) => "win"
         } mustEqual Success("win")
 
         failed.rescue {
-            case FailureData(-1, "won't match", _) => 2
+            case Failure(FailureData(-1, "won't match", _)) => 2
         } mustEqual failed
     }
 
@@ -154,11 +158,11 @@ class ResultTest extends Fictus {
     @Test
     def rescueFlat_Fail {
         failed.rescueFlat {
-            case `failureData` => Success(2)
+            case Failure(`failureData`) => Success(2)
         } mustEqual Success(2)
 
         failed.rescueFlat {
-            case FailureData(-1, "won't match", _) => Success(2)
+            case Failure(FailureData(-1, "won't match", _)) => Success(2)
         } mustEqual failed
     }
 
@@ -188,67 +192,10 @@ class ResultTest extends Fictus {
 
     @Test
     def failure {
-        failed.fail mustEqual Some(failureData)
-        rawFail.fail mustEqual Some(failureData)
+        failed.failure mustEqual Some(rawFail)
+        rawFail.failure mustEqual Some(rawFail)
 
-        Success(1).fail mustEqual None
-    }
-
-    // TODO How can I get rid of this?
-    implicit def i2f(xx: Fail.Convert[Int]) = {
-        new RuntimeException().fillInStackTrace().printStackTrace()
-        null
-    }
-
-    @Test
-    def filter {
-        Success(1) filter (1==) mustEqual Success(1)
-        Success(1) filter (2==) mustMatch { case Fail(_) => }
-        failed filter (2==) mustMatch { case Fail(_) => }
-        rawFail filter (_ => false) mustMatch { case Fail(_) => }
-        rawFail filter (_ => true) mustMatch { case Fail(_) => }
-    }
-
-    @Test
-    def withFilter_foreach {
-        expect(io.invoke) times 3
-
-        test {
-            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
-            failed.withFilter(_ => true).foreach(_ => io.invoke)
-            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
-            failed.withFilter(_ => true).foreach(_ => io.invoke)
-            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
-            failed.withFilter(_ => true).foreach(_ => io.invoke)
-            rawFail.withFilter(_ => true).foreach(_ => io.invoke)
-        }
-    }
-
-    @Test
-    def withFilter_map {
-        Success(1).withFilter(_ => true).map(1+) mustEqual Success(2)
-        failed.withFilter(_ => true).map(1+) mustMatch { case Fail(_) => }
-        rawFail.withFilter(_ => true).map(_ => 1) mustMatch { case Fail(_) => }
-    }
-
-    @Test
-    def withFilter_flatMap {
-        Success(1).withFilter(_ => true) flatMap (v => Success(v + 2)) mustEqual Success(3)
-        failed.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Fail(_) => }
-        rawFail.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Fail(_) => }
-    }
-
-    @Test
-    def withFilter_withFilter {
-        expect(io.invoke)
-
-        test {
-            Success(1).withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
-            failed.withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
-            Success(1).withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
-            failed.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
-            rawFail.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
-        }
+        Success(1).failure mustEqual None
     }
 
     @Test
@@ -309,4 +256,62 @@ class ResultTest extends Fictus {
         }
         Success(1) onFail (_ => io.invoke)
     }
+
+
+    //    // TODO How can I get rid of this?
+    //    implicit def i2f(xx: Failure.Convert[Int]) = {
+    //        new RuntimeException().fillInStackTrace().printStackTrace()
+    //        null
+    //    }
+    //
+    //    @Test
+    //    def filter {
+    //        Success(1) filter (1==) mustEqual Success(1)
+    //        Success(1) filter (2==) mustMatch { case Failure(_) => }
+    //        failed filter (2==) mustMatch { case Failure(_) => }
+    //        rawFail filter (_ => false) mustMatch { case Failure(_) => }
+    //        rawFail filter (_ => true) mustMatch { case Failure(_) => }
+    //    }
+    //
+    //    @Test
+    //    def withFilter_foreach {
+    //        expect(io.invoke) times 3
+    //
+    //        test {
+    //            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
+    //            failed.withFilter(_ => true).foreach(_ => io.invoke)
+    //            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
+    //            failed.withFilter(_ => true).foreach(_ => io.invoke)
+    //            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
+    //            failed.withFilter(_ => true).foreach(_ => io.invoke)
+    //            rawFail.withFilter(_ => true).foreach(_ => io.invoke)
+    //        }
+    //    }
+    //
+    //    @Test
+    //    def withFilter_map {
+    //        Success(1).withFilter(_ => true).map(1+) mustEqual Success(2)
+    //        failed.withFilter(_ => true).map(1+) mustMatch { case Failure(_) => }
+    //        rawFail.withFilter(_ => true).map(_ => 1) mustMatch { case Failure(_) => }
+    //    }
+    //
+    //    @Test
+    //    def withFilter_flatMap {
+    //        Success(1).withFilter(_ => true) flatMap (v => Success(v + 2)) mustEqual Success(3)
+    //        failed.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_) => }
+    //        rawFail.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_) => }
+    //    }
+    //
+    //    @Test
+    //    def withFilter_withFilter {
+    //        expect(io.invoke)
+    //
+    //        test {
+    //            Success(1).withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
+    //            failed.withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
+    //            Success(1).withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
+    //            failed.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
+    //            rawFail.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
+    //        }
+    //    }
 }

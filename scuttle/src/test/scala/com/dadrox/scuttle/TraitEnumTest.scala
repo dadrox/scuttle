@@ -51,10 +51,8 @@ class TraitEnumTest extends Fictus {
     }
 
     @Test
-    def exhaustive_match_works_for_trait_based_enums {
-        // Specifically, you must extend EnumVal with a sealed trait
+    def exhaustive_match_DOES_NOT_WORK_for_trait_based_enums {
 
-        // :D exhaustive match for sealed trait EnumVals
         shouldThrow[MatchError] {
             val instance: TraitEnum.EnumVal = TraitEnum.A
             instance match { case TraitEnum.B => }
