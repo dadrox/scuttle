@@ -4,7 +4,7 @@ import com.dadrox.scuttle.Enum
 import scala.concurrent.{ Future => ScalaFuture, _ }
 import scala.util.{ Success => ScalaSuccess, Failure => ScalaFailure }
 import scala.util.control.NonFatal
-import com.dadrox.scuttle.time._
+import com.dadrox.scuttle.time.Duration
 
 object AwaitFailReason extends Enum {
     sealed case class EnumVal private[AwaitFailReason] (name: String) extends Value with Failure.Reason

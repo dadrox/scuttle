@@ -109,7 +109,7 @@ class ConvertersTest extends Fictus {
 
     @Test
     def jodaDurationToScuttle_converter {
-import com.dadrox.scuttle.time.joda.converters.jodaDurationToScuttleDuration
+        import com.dadrox.scuttle.time.joda.converters.jodaDurationToScuttleDuration
 
         val scuttle = Duration.fromSeconds(3)
         val joda = JodaDuration.millis(3000).asScuttle

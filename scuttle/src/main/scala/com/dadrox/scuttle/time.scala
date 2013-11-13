@@ -1,9 +1,7 @@
 package com.dadrox.scuttle
 
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.duration.{ Duration => ScalaDuration }
-import com.dadrox.scuttle.time.Time
-import com.dadrox.scuttle.time.Duration
+import concurrent.duration.{ Duration => ScalaDuration }
+import com.dadrox.scuttle.time.{ Duration, Time }
 
 package object time {
     implicit def intToDuration(value: Int) = new AugmentedLong(value)

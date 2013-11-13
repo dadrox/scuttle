@@ -1,5 +1,7 @@
 package com.dadrox.scuttle.time
 
+import scala.util.control.NonFatal
+
 object Time extends TimeSource
 
 case class Time(milliseconds: Long) extends TimeInstance[Time] {
@@ -25,7 +27,7 @@ trait TimeSource extends DurationSource[Time] {
     def parse(pattern: String, date: String): Option[Time] = {
         try Some(new TimeFormat(pattern).parse(date))
         catch {
-            case _: Exception => None
+            case NonFatal(_) => None
         }
     }
 

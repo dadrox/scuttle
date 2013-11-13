@@ -4,19 +4,19 @@ import com.dadrox.scuttle.time.{ Duration, Time }
 import org.joda.time.{ DateTime => JodaTime, Duration => JodaDuration }
 
 object converters {
-    implicit def scuttleTimeToJodaTime(time: Time) = new {
+    implicit class scuttleTimeToJodaTime(time: Time) {
         def asJoda(): JodaTime = conversions.scuttleTimeToJodaTime(time)
     }
 
-    implicit def jodaTimeToScuttleTime(time: JodaTime) = new {
+    implicit class jodaTimeToScuttleTime(time: JodaTime) {
         def asScuttle(): Time = conversions.jodaTimeToScuttleTime(time)
     }
 
-    implicit def scuttleDurationToJodaDuration(duration: Duration) = new {
+    implicit class scuttleDurationToJodaDuration(duration: Duration) {
         def asJoda(): JodaDuration = conversions.scuttleDurationToJodaDuration(duration)
     }
 
-    implicit def jodaDurationToScuttleDuration(duration: JodaDuration) = new {
+    implicit class jodaDurationToScuttleDuration(duration: JodaDuration) {
         def asScuttle(): Duration = conversions.jodaDurationToScuttleDuration(duration)
     }
 }

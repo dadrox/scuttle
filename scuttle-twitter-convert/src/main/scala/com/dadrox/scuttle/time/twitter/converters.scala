@@ -4,19 +4,19 @@ import com.dadrox.scuttle.time.{ Duration, Time }
 import com.twitter.util.{ Duration => TwitterDuration, Time => TwitterTime }
 
 object converters {
-    implicit def scuttleTimeToTwitterTime(time: Time) = new {
+    implicit class scuttleTimeToTwitterTime(time: Time) {
         def asTwitter(): TwitterTime = conversions.scuttleTimeToTwitterTime(time)
     }
 
-    implicit def twitterTimeToScuttleTime(time: TwitterTime) = new {
+    implicit class twitterTimeToScuttleTime(time: TwitterTime) {
         def asScuttle(): Time = conversions.twitterTimeToScuttleTime(time)
     }
 
-    implicit def scuttleDurationToTwitterDuration(duration: Duration) = new {
+    implicit class scuttleDurationToTwitterDuration(duration: Duration) {
         def asTwitter(): TwitterDuration = conversions.scuttleDurationToTwitterDuration(duration)
     }
 
-    implicit def twitterDurationToScuttleDuration(duration: TwitterDuration) = new {
+    implicit class twitterDurationToScuttleDuration(duration: TwitterDuration) {
         def asScuttle(): Duration = conversions.twitterDurationToScuttleDuration(duration)
     }
 }
