@@ -4,12 +4,13 @@ import com.dadrox.scuttle.Enum
 import scala.concurrent.{ Future => ScalaFuture, _ }
 import scala.util.{ Success => ScalaSuccess, Failure => ScalaFailure }
 import scala.util.control.NonFatal
-import com.dadrox.scuttle.time.Duration
+import com.dadrox.scuttle.time.{Time, Timer, Duration}
+import java.util.concurrent.TimeoutException
+import scala.concurrent.TimeoutException
 
 object AwaitFailReason extends Enum {
     sealed case class EnumVal private[AwaitFailReason] (name: String) extends Value with Failure.Reason
 
-    val Timeout = EnumVal("Timeout")
     val Interrupted = EnumVal("Interrupted")
     val IllegalArgument = EnumVal("IllegalArgument")
     val Unknown = EnumVal("Unknown")
@@ -19,9 +20,18 @@ case class AwaitFailure(reason: AwaitFailReason.EnumVal) extends Failure.Detail 
     val cause: Option[Throwable] = None
 }
 
-trait Future[+T] {
+object TimeoutReason extends Enum {
+    sealed case class EnumVal private[TimeoutReason] (name: String) extends Value with Failure.Reason
 
-    // TODO within(Duration)
+    val Await = EnumVal("Await")
+    val Timer = EnumVal("Timer")
+}
+case class TimeoutFailure(reason: TimeoutReason.EnumVal, duration: Option[Duration]) extends Failure.Detail {
+    val message: String = reason.name
+    val cause: Option[Throwable] = None
+}
+
+trait Future[+T] {
 
     def underlying: ScalaFuture[Result[T]]
 
@@ -58,13 +68,19 @@ trait Future[+T] {
         this
     }
 
+    def within(timeout: Duration)(implicit timer: Timer, executor: ExecutionContext): Future[T] = {
+        val p = Promise[Result[T]]()
+        timer.doAt(Time.now + timeout)(p success Failure(TimeoutFailure(TimeoutReason.Timer, Some(timeout))))
+        ConcreteFuture(ScalaFuture.firstCompletedOf(List(underlying, p.future)))
+    }
+
     def await(): Result[T] = await(Duration.fromDays(1))
 
     def await(atMost: Duration): Result[T] = {
         try Await.result(underlying, atMost.asScala())
         catch {
             case e: InterruptedException     => Failure(AwaitFailure(AwaitFailReason.Interrupted))
-            case e: TimeoutException         => Failure(AwaitFailure(AwaitFailReason.Timeout))
+            case e: TimeoutException         => Failure(TimeoutFailure(TimeoutReason.Await, Some(atMost)))
             case e: IllegalArgumentException => Failure(AwaitFailure(AwaitFailReason.IllegalArgument))
             case NonFatal(e)                 => Failure(AwaitFailure(AwaitFailReason.Unknown))
         }

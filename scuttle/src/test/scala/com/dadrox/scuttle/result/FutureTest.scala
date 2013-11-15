@@ -20,6 +20,7 @@ case class AnotherFailMsg(message: String) extends Failure.Detail {
 class FutureTest extends Fictus {
 
     implicit val ec = Future.immediateExecutor
+    implicit val timer = new PooledTimer("timer")
 
     trait Service {
         def called(i: Int)
@@ -72,11 +73,13 @@ class FutureTest extends Fictus {
     @Test
     def apply_timeout {
         import concurrent.ExecutionContext.Implicits.global
+
+        val timeout = 1.millisecond
         Future {
             Thread.sleep(50)
             Success(7)
-        }.await(1.millisecond) mustMatch {
-            case Failure(AwaitFailure(_)) =>
+        }.await(timeout) mustMatch {
+            case Failure(TimeoutFailure(_, Some(`timeout`))) =>
         }
     }
 
@@ -106,5 +109,26 @@ class FutureTest extends Fictus {
     def onFailure {
         service.called(failable)
         test(FutureFail(failable).onFailure(service.called).await)
+    }
+
+    @Test
+    def within_timeout {
+        import concurrent.ExecutionContext.Implicits.global
+
+        val timeout = 1.millisecond()
+        val future = Future {
+            Thread.sleep(50)
+            Success(7)
+        }
+        future.within(timeout).await() mustMatch {
+            case Failure(TimeoutFailure(TimeoutReason.Timer, Some(`timeout`))) =>
+        }
+    }
+
+    @Test
+    def within_noTimeout {
+        import concurrent.ExecutionContext.Implicits.global
+        val future = Future(Success(7))
+        future.within(10.millisecond()).await() mustEqual Success(7)
     }
 }
