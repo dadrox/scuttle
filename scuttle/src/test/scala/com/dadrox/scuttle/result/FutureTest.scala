@@ -20,7 +20,7 @@ case class AnotherFailMsg(message: String) extends Failure.Detail {
 class FutureTest extends Fictus {
 
     implicit val ec = Future.immediateExecutor
-    implicit val timer = new PooledTimer("timer")
+    implicit val timer = Timer()
 
     trait Service {
         def called(i: Int)

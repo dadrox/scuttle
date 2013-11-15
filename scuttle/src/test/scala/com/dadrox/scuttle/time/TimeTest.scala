@@ -109,13 +109,13 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
 
     @Test
     def fake_time {
-        FakeTime.set(NowMs)
-        val now = FakeTime.now
+        val time = FakeTime().set(NowMs)
+        val now = time.now
         now mustEqual Now
         (now + 3.seconds) mustEqual Time.fromMilliseconds(NowMs + 3 * 1000)
 
-        FakeTime.set(0)
-        Time.Epoch mustEqual FakeTime.now
+        time.set(0)
+        Time.Epoch mustEqual time.now
     }
 
     @Test

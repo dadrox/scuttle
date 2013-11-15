@@ -7,13 +7,31 @@ import java.util.concurrent.Executors
 import scala.concurrent.Promise
 import com.dadrox.scuttle.result._
 import scala.util.control.NonFatal
+import scala.collection.mutable.ArrayBuffer
+
+case class FailedScheduledTask(cause: Option[Throwable]) extends Failure.Detail {
+    val reason = new Failure.Reason {
+        val name = "FailedScheduledTask"
+    }
+    val message = "Unexpected exception on scheduled task"
+    override val toString = s"FailedScheduledTask($message, $cause)"
+}
+
+object Timer {
+    def apply(threads: Int = 2, name: String = "Timer", daemonThreads: Boolean = false) =
+        new PooledTimer(threads, name, daemonThreads)
+
+    def integrationTestTimer() = new PooledTimer(threads = 1, name = "TestTimer", daemonThreads = true)
+
+    def fake(timeSource: TimeSource = FakeTime()) = new FakeTimer(timeSource)
+}
 
 trait TimerTask {
     def cancel()
 }
 
 trait Timer {
-    def repeat(period: Duration)(fn: => Unit): TimerTask = repeat(Time.now, period)(fn)
+    def repeat(period: Duration)(fn: => Unit): TimerTask = repeat(Time.now + period, period)(fn)
     def repeat(start: Time, period: Duration)(fn: => Unit): TimerTask
 
     def doIn[A](duration: Duration)(fn: => A): Future[A] = doAt(Time.now + duration)(fn)
@@ -22,16 +40,8 @@ trait Timer {
     def stop()
 }
 
-case class FailedScheduledTask(cause: Option[Throwable]) extends Failure.Detail {
-    val reason = new Failure.Reason {
-        val name = "FailedScheduledTask"
-    }
-    val message = "Unexpected exception on scheduled task"
-        override val toString = s"FailedScheduledTask($message, $cause)"
-}
-
-class PooledTimer(threads: Int = 2, threadFactory: ThreadFactory) extends Timer {
-    def this(name: String, threads: Int = 2, daemonThreads: Boolean = false) = this(threads, new NamedThreadFactory(name, daemonThreads))
+class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
+    def this(threads: Int = 2, name: String = "Timer", daemonThreads: Boolean = false) = this(threads, new NamedThreadFactory(name, daemonThreads))
 
     val executor = Executors.newScheduledThreadPool(threads, threadFactory)
 
@@ -47,7 +57,6 @@ class PooledTimer(threads: Int = 2, threadFactory: ThreadFactory) extends Timer 
 
     def doAt[A](when: Time)(fn: => A): Future[A] = {
         val p = Promise[Result[A]]()
-
         val r = new Runnable {
             def run = {
                 p.completeWith(Promise.successful {
@@ -58,12 +67,7 @@ class PooledTimer(threads: Int = 2, threadFactory: ThreadFactory) extends Timer 
                 }.future)
             }
         }
-        val javaFuture = executor.schedule(r, Time.now.until(when).inMilliseconds(), java.util.concurrent.TimeUnit.MILLISECONDS)
-        val task = new TimerTask {
-            def cancel() = {
-                javaFuture.cancel(true)
-            }
-        }
+        executor.schedule(r, Time.now.until(when).inMilliseconds(), java.util.concurrent.TimeUnit.MILLISECONDS)
         ConcreteFuture(p.future)
     }
 
@@ -82,4 +86,55 @@ class NamedThreadFactory(name: String, daemonThreads: Boolean = false) extends T
         thread.setDaemon(daemonThreads)
         thread
     }
+}
+
+class FakeTimer(timeSource: TimeSource) extends Timer {
+    val tasks = ArrayBuffer[Task]()
+
+    trait Task extends TimerTask {
+        def runAt: Time
+        def cancel() {}
+    }
+
+    case class OneShotTask[A](runAt: Time, fn: () => A, promise: Promise[Result[A]]) extends Task
+    case class PeriodicTask(runAt: Time, period: Duration, fn: () => Unit) extends Task
+
+    def tick() {
+
+        println(s"tick NOW ${timeSource.now} $tasks")
+
+        val ready = tasks.filter(_.runAt <= timeSource.now)
+
+        println(s"READY $ready")
+
+
+        ready.foreach {
+            case task @ OneShotTask(_, fn, promise) =>
+                tasks -= task
+                promise.success(Success(fn()))
+            case task @ PeriodicTask(_, period, fn) =>
+
+                println(s"BEFORE TASKS $tasks")
+
+                fn()
+                tasks -= task += task.copy(runAt = timeSource.now + period)
+
+                println(s"NEW TASKS $tasks")
+        }
+    }
+
+    def repeat(start: Time, period: Duration)(fn: => Unit): TimerTask = {
+        val task = PeriodicTask(start, period, () => fn)
+        tasks += task
+        task
+    }
+
+    def doAt[A](time: Time)(fn: => A): Future[A] = {
+        val p = Promise[Result[A]]()
+        val task = OneShotTask[A](time, () => fn, p)
+        tasks += task
+        ConcreteFuture(p.future)
+    }
+
+    def stop() {}
 }

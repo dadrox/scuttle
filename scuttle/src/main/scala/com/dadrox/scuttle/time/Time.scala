@@ -17,6 +17,7 @@ trait TimeSource extends DurationSource[Time] {
     def now() = fromMilliseconds(System.currentTimeMillis())
 
     val Epoch = new Time(0)
+    val epoch = Epoch
 
     override val Max = new Time(Long.MaxValue)
     override val Min = new Time(Long.MinValue)
@@ -97,7 +98,9 @@ class TimeFormat(pattern: String) {
 /** Useful for time sensitive unit tests.
  *  Warning! This is _not_ thread safe! It is only intended for single-thread unit tests.
  */
-object FakeTime extends FakeTimeInstance
+object FakeTime {
+    def apply() = new FakeTimeInstance
+}
 
 class FakeTimeInstance extends TimeSource {
     import java.util.concurrent.atomic.AtomicLong
@@ -107,8 +110,14 @@ class FakeTimeInstance extends TimeSource {
 
     override def now() = Time.fromMilliseconds(current.get)
 
-    def set(now: Time) { set(now.milliseconds) }
-    def set(now: Long) { current.set(now) }
+    def set(now: Time): FakeTimeInstance = {
+        set(now.milliseconds)
+        this
+    }
+    def set(now: Long): FakeTimeInstance = {
+        current.set(now)
+        this
+    }
 
     def +(delta: Duration) = add(delta)
     def add(delta: Duration) = current.set(now.milliseconds + delta.milliseconds)

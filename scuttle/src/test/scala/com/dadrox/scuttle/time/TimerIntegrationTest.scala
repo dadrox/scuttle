@@ -1,5 +1,6 @@
 package com.dadrox.scuttle.time
 
+import com.dadrox.scuttle.time._
 import org.fictus.Fictus
 import org.junit.Test
 import scala.util.control.NonFatal
@@ -22,7 +23,7 @@ class TimerIntegrationTest extends Fictus {
 
     def withTimer(name: String, sleepFor: Duration)(fn: Timer => Unit) = test {
         println(s"$name $started")
-        val timer = new PooledTimer("TEST")
+        val timer = new PooledTimer(name = "TEST")
         try {
             fn(timer)
             Thread.sleep(sleepFor.inMilliseconds())

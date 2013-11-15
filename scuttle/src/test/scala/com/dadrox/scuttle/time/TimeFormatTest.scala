@@ -12,8 +12,7 @@ object TimeFormatTest {
 }
 class TimeFormatTest extends Fictus {
 
-    FakeTime.set(TimeFormatTest.Now)
-    val Now = FakeTime.now
+    val Now = FakeTime().set(TimeFormatTest.Now).now
     val TimeNow = TimeFormatTest.TimeNow
 
     @Test

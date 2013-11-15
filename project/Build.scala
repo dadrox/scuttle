@@ -61,15 +61,15 @@ object ScuttleBuild extends Build {
   lazy val scuttleTwitterConvert = Project(
     id = "scuttle-twitter-convert",
     base = file("scuttle-twitter-convert"),
-    settings = Settings.commonSettings(Some(V.TwitterUtil)) ++ Seq(
+    settings = Settings.commonSettings() ++ Seq(
       libraryDependencies ++= Seq(
-        "com.twitter" %% "util-core" % V.TwitterUtil)
+        "com.twitter" %% "util-core" % V.TwitterUtil % "provided")
     )) dependsOn(scuttle)
 
   lazy val scuttleJodaConvert = Project(
     id = "scuttle-joda-convert",
     base = file("scuttle-joda-convert"),
-    settings = Settings.commonSettings(Some(V.Joda)) ++ Seq(
+    settings = Settings.commonSettings() ++ Seq(
       libraryDependencies ++= Seq(
         "org.joda" % "joda-convert" % "1.2" % "provided",
         "joda-time" % "joda-time" % V.Joda % "provided")
