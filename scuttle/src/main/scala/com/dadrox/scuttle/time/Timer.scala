@@ -22,6 +22,14 @@ trait Timer {
     def stop()
 }
 
+case class FailedScheduledTask(cause: Option[Throwable]) extends Failure.Detail {
+    val reason = new Failure.Reason {
+        val name = "FailedScheduledTask"
+    }
+    val message = "Unexpected exception on scheduled task"
+        override val toString = s"FailedScheduledTask($message, $cause)"
+}
+
 class PooledTimer(threads: Int = 2, threadFactory: ThreadFactory) extends Timer {
     def this(name: String, threads: Int = 2, daemonThreads: Boolean = false) = this(threads, new NamedThreadFactory(name, daemonThreads))
 
@@ -38,15 +46,7 @@ class PooledTimer(threads: Int = 2, threadFactory: ThreadFactory) extends Timer 
     }
 
     def doAt[A](when: Time)(fn: => A): Future[A] = {
-
         val p = Promise[Result[A]]()
-
-        case class FailedScheduledTask(cause: Option[Throwable]) extends Failure.Detail {
-            val reason = new Failure.Reason {
-                val name = "FailedScheduledTask"
-            }
-            val message = "Unexpected exception on scheduled task"
-        }
 
         val r = new Runnable {
             def run = {
@@ -64,7 +64,6 @@ class PooledTimer(threads: Int = 2, threadFactory: ThreadFactory) extends Timer 
                 javaFuture.cancel(true)
             }
         }
-
         ConcreteFuture(p.future)
     }
 

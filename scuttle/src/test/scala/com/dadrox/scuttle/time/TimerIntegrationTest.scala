@@ -11,6 +11,9 @@ class TimerIntegrationTest extends Fictus {
 
     trait Service {
         def fired()
+        def onSuccess()
+        def onFailure()
+        def onComplete()
     }
 
     implicit val ec = Future.immediateExecutor
@@ -101,16 +104,33 @@ class TimerIntegrationTest extends Fictus {
     }
 
     @Test
-    def future {
+    def future_success_callbacks {
         svc.fired()
+        svc.onComplete()
+        svc.onSuccess()
 
-        withTimer("future", 60 ms) { unit =>
+        withTimer("future_success_callbacks", 60 ms) { unit =>
             val future = unit.doAt(Time.now + 50.ms) { fire; 3 }
             println(future)
-            future.onSuccess(_ => println("SUCCESS"))
-                .onFailure(_ => println("FAILURE"))
-                .onComplete(_ => println("COMPLETE"))
+            future.onSuccess(_ => svc.onSuccess())
+                .onFailure(_ => svc.onFailure())
+                .onComplete(_ => svc.onComplete())
                 .await mustEqual Success(3)
+        }
+    }
+
+    @Test
+    def future_failure_callbacks {
+        svc.onComplete()
+        svc.onFailure()
+
+        withTimer("future_success_callbacks", 60 ms) { unit =>
+            val future = unit.doAt(Time.now + 50.ms) { throw new RuntimeException; 3 }
+            println(future)
+            future.onSuccess(_ => svc.onSuccess())
+                .onFailure(_ => svc.onFailure())
+                .onComplete(_ => svc.onComplete())
+                .await mustMatch { case Failure(FailedScheduledTask(_)) => }
         }
     }
 }
