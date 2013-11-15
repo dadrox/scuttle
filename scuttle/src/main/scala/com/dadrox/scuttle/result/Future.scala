@@ -26,7 +26,7 @@ object TimeoutReason extends Enum {
     val Await = EnumVal("Await")
     val Timer = EnumVal("Timer")
 }
-case class TimeoutFailure(reason: TimeoutReason.EnumVal) extends Failure.Detail {
+case class TimeoutFailure(reason: TimeoutReason.EnumVal, duration: Option[Duration]) extends Failure.Detail {
     val message: String = reason.name
     val cause: Option[Throwable] = None
 }
@@ -70,7 +70,7 @@ trait Future[+T] {
 
     def within(timeout: Duration)(implicit timer: Timer, executor: ExecutionContext): Future[T] = {
         val p = Promise[Result[T]]()
-        timer.doAt(Time.now + timeout)(p success Failure(TimeoutFailure(TimeoutReason.Timer)))
+        timer.doAt(Time.now + timeout)(p success Failure(TimeoutFailure(TimeoutReason.Timer, Some(timeout))))
         ConcreteFuture(ScalaFuture.firstCompletedOf(List(underlying, p.future)))
     }
 
@@ -80,7 +80,7 @@ trait Future[+T] {
         try Await.result(underlying, atMost.asScala())
         catch {
             case e: InterruptedException     => Failure(AwaitFailure(AwaitFailReason.Interrupted))
-            case e: TimeoutException         => Failure(TimeoutFailure(TimeoutReason.Await))
+            case e: TimeoutException         => Failure(TimeoutFailure(TimeoutReason.Await, Some(atMost)))
             case e: IllegalArgumentException => Failure(AwaitFailure(AwaitFailReason.IllegalArgument))
             case NonFatal(e)                 => Failure(AwaitFailure(AwaitFailReason.Unknown))
         }

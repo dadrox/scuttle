@@ -73,11 +73,13 @@ class FutureTest extends Fictus {
     @Test
     def apply_timeout {
         import concurrent.ExecutionContext.Implicits.global
+
+        val timeout = 1.millisecond
         Future {
             Thread.sleep(50)
             Success(7)
-        }.await(1.millisecond) mustMatch {
-            case Failure(TimeoutFailure(_)) =>
+        }.await(timeout) mustMatch {
+            case Failure(TimeoutFailure(_, Some(`timeout`))) =>
         }
     }
 
@@ -112,12 +114,14 @@ class FutureTest extends Fictus {
     @Test
     def within_timeout {
         import concurrent.ExecutionContext.Implicits.global
+
+        val timeout = 1.millisecond()
         val future = Future {
             Thread.sleep(50)
             Success(7)
         }
-        future.within(1.millisecond()).await() mustMatch {
-            case Failure(TimeoutFailure(TimeoutReason.Timer)) =>
+        future.within(timeout).await() mustMatch {
+            case Failure(TimeoutFailure(TimeoutReason.Timer, Some(`timeout`))) =>
         }
     }
 
