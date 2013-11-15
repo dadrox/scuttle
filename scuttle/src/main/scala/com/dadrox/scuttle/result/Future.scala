@@ -52,8 +52,8 @@ trait Future[+T] {
 
     final def onFailure[U](fn: Failure.Detail => U)(implicit executor: ExecutionContext): Future[T] = {
         underlying.onSuccess {
-            case failure @ Failure(f) => fn(f)
-            case _                    =>
+            case Failure(f) => fn(f)
+            case _          =>
         }
         this
     }
@@ -74,6 +74,9 @@ trait Future[+T] {
 object Future {
 
     // TODO collect, join, firstOf (select), etc?
+
+    //    def collect[A](fs: Seq[Future[A]]): Future[Seq[Result[A]]] = {
+    //    }
 
     def apply[T](obj: => Result[T])(implicit executor: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(obj))
     def success[T](obj: T): Future[T] = FutureSuccess(obj)

@@ -8,14 +8,22 @@ import com.dadrox.scuttle.result._
 import com.dadrox.scuttle.time.conversions._
 
 class TimerIntegrationTest extends Fictus {
+
+    trait Service {
+        def fired()
+    }
+
     implicit val ec = Future.immediateExecutor
 
-    def withTimer(sleepFor: Duration)(fn: Timer => Unit) = {
+    val svc = mock[Service]
+
+    def withTimer(name: String, sleepFor: Duration)(fn: Timer => Unit) = test {
+        println(s"$name $started")
         val timer = new PooledTimer("TEST")
         try {
             fn(timer)
             Thread.sleep(sleepFor.inMilliseconds())
-            println(s"DONE @ ${Time.now}")
+            println(s"$name DONE @ ${Time.now}")
         } finally timer.stop
     }
 
@@ -23,72 +31,81 @@ class TimerIntegrationTest extends Fictus {
     def before { println }
 
     def started = s"STARTED @ ${Time.now}"
-    def fire = println(s"FIRED @ ${Time.now}")
+    def fire = {
+        println(s"FIRED @ ${Time.now}")
+        svc.fired()
+    }
 
     @Test
     def doAt {
-        println(s"doAt $started")
-        withTimer(2 seconds) {
-            _.doAt(Time.now + 1.second)(fire)
+        svc.fired()
+
+        withTimer("doAt", 50 ms) {
+            _.doAt(Time.now + 30.ms)(fire)
         }
     }
 
     @Test
     def doIn {
-        println(s"doIn $started")
-        withTimer(2 seconds) {
-            _.doIn(1.second)(fire)
+        svc.fired()
+
+        withTimer("doIn", 50 ms) {
+            _.doIn(30 ms)(fire)
         }
     }
 
     @Test
     def repeat_starting_now {
-        println(s"repeat_starting_now $started")
-        withTimer(6 seconds) {
-            _.repeat(1.second)(fire)
+        svc.fired() times 2
+
+        withTimer("repeat_starting_now", 100 ms) {
+            _.repeat(40 ms)(fire)
         }
     }
 
     @Test
     def repeat {
-        println(s"repeat $started")
-        withTimer(6 seconds) {
-            _.repeat(Time.now + 1.second, 1.second)(fire)
+        svc.fired() times 3
+
+        withTimer("repeat", 100 ms) {
+            _.repeat(Time.now + 50.ms, 20.ms)(fire)
         }
     }
 
     @Test
     def cancel {
-        println(s"cancel STARTED @ ${Time.now}")
-        withTimer(1 seconds) { unit =>
-            val task = unit.repeat(Time.now + 1.second, 1.second)(fire)
+        svc.fired() times 2
+
+        withTimer("cancel", 50 ms) { unit =>
+            val task = unit.repeat(20 ms)(fire)
+            Thread.sleep(50)
             task.cancel()
         }
     }
 
     @Test
     def throws_with_task {
-        println(s"throws_with_task STARTED @ ${Time.now}")
-        withTimer(2 seconds) { unit =>
-            unit.repeat(Time.now + 1.second, 1.second)(throw new RuntimeException)
+        withTimer("throws_with_task", 60 ms) { unit =>
+            unit.repeat(Time.now + 50.ms, 20 ms)(throw new RuntimeException)
         }
     }
 
     @Test
     def throws_with_future {
-        println(s"throws_with_future STARTED @ ${Time.now}")
-        withTimer(2 seconds) { unit =>
-            val future = unit.doAt(Time.now + 1.second)(throw new RuntimeException)
+        withTimer("throws_with_future", 60 ms) { unit =>
+            val future = unit.doAt(Time.now + 50.ms)(throw new RuntimeException)
             println(future)
-            println(future.await(2 seconds))
+            future.onFailure(println)
+            println(future.await(1 second))
         }
     }
 
     @Test
     def future {
-        println(s"future $started")
-        withTimer(2.seconds) { unit =>
-            val future = unit.doAt(Time.now + 1.second) { fire; 3 }
+        svc.fired()
+
+        withTimer("future", 60 ms) { unit =>
+            val future = unit.doAt(Time.now + 50.ms) { fire; 3 }
             println(future)
             future.onSuccess(_ => println("SUCCESS"))
                 .onFailure(_ => println("FAILURE"))
