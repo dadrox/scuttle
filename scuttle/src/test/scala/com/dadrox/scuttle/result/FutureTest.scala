@@ -117,7 +117,7 @@ class FutureTest extends Fictus {
 
         val timeout = 1.millisecond()
         val future = Future {
-            Thread.sleep(50)
+            Thread.sleep(100)
             Success(7)
         }
         future.within(timeout).await() mustMatch {
