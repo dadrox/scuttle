@@ -3,6 +3,20 @@ package com.dadrox.scuttle.result
 // TODO:
 //  - Some notion of "tracing" that shows how results are chained? Sorta like stacktraces
 
+object Result {
+    /** If the Results are all Successes, converts a seq of Result into a Result of seq.
+     *  Otherwise, converts to the first Failure.
+     */
+    // TODO? accumulate the Failure.Detail messages into one?
+    def collect[A](rs: Seq[Result[A]]): Result[Seq[A]] = rs match {
+        case Nil => Success(Nil)
+        case results => results.flatMap(_.failure()) match {
+            case failure +: rest => failure
+            case Seq()           => Success(results.flatMap(_.success()))
+        }
+    }
+}
+
 /** A response monad that carries detailed failure data.
  *  Sorta like a right-biased Either.
  */
