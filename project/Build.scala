@@ -30,7 +30,7 @@ object Settings extends Version {
       testListeners <+= target map (t => new com.dadrox.sbt.test.reports.Xml(t getName)),
       libraryDependencies in ThisBuild ++= Seq(
           "junit" % "junit" % "4.11" % "test->default",
-          "org.fictus" %% "fictus" % "0.9" % "test",
+          "org.fictus" %% "fictus" % "0.9.1" % "test",
           "com.dadrox" % "sbt-junit" % "0.3.1" % "test")
     )
   }
@@ -44,7 +44,7 @@ object ScuttleBuild extends Build {
     val TwitterUtil = "6.3.8"
   }
 
-  val DisablePublish = Seq(publish := false, publishLocal := false)
+  val DisablePublish = Seq(publish := (), publishLocal := ())
 
   lazy val root = Project(
     id = "root",

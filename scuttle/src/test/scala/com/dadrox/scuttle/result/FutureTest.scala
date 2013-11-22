@@ -79,7 +79,7 @@ class FutureTest extends Fictus {
             Thread.sleep(50)
             Success(7)
         }.await(timeout) mustMatch {
-            case Failure(TimeoutFailure(_, Some(`timeout`))) =>
+            case Failure(TimeoutFailure(_, Some(`timeout`), _)) =>
         }
     }
 
@@ -121,7 +121,7 @@ class FutureTest extends Fictus {
             Success(7)
         }
         future.within(timeout).await() mustMatch {
-            case Failure(TimeoutFailure(TimeoutReason.Timer, Some(`timeout`))) =>
+            case Failure(TimeoutFailure(TimeoutReason.Timer, Some(`timeout`), _)) =>
         }
     }
 
