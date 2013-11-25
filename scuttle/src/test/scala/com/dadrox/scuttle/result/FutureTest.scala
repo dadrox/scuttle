@@ -1,6 +1,5 @@
 package com.dadrox.scuttle.result
 
-import org.junit.Test
 import com.dadrox.scuttle.time._
 import org.fictus.Fictus
 
@@ -54,7 +53,6 @@ class FutureTest extends Fictus {
 
     @Test
     def flatMaps {
-
         val seven = FutureSuccess(3) flatMap { s =>
             FutureSuccess(s + 4)
         } flatMap { s =>
@@ -63,6 +61,19 @@ class FutureTest extends Fictus {
             FutureFail(failable)
         }
         seven.await() mustEqual Failure(failable)
+    }
+
+    @Test
+    def foreach_success {
+        val future: Future[Int] = FutureFail(failable)
+        test(future foreach service.called)
+    }
+
+    @Test
+    def foreach_failure {
+        service.called(3)
+
+        test(FutureSuccess(3) foreach service.called)
     }
 
     @Test

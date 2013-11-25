@@ -42,6 +42,8 @@ trait Future[+T] {
 
     final def map[U](f: T => U)(implicit executor: ExecutionContext): Future[U] = ConcreteFuture(underlying.map(_.map(f)))
 
+    final def foreach(fn: T => Unit)(implicit executor: ExecutionContext) = onSuccess(fn)
+
     final def onSuccess[U](fn: T => U)(implicit executor: ExecutionContext): Future[T] = {
         underlying.onSuccess {
             case Success(s) => fn(s)
