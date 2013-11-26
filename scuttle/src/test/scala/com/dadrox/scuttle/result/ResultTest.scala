@@ -257,6 +257,12 @@ class ResultTest extends Fictus {
         Success(1) onFail (_ => io.invoke)
     }
 
+    @Test
+    def result_of_void {
+        val xx: Result[Void] = Success(Void())
+
+        xx.success() mustEqual Some(Void())
+    }
 
     //    // TODO How can I get rid of this?
     //    implicit def i2f(xx: Failure.Convert[Int]) = {
