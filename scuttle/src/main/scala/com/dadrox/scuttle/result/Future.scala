@@ -70,6 +70,14 @@ trait Future[+T] {
         this
     }
 
+    final def rescue[U >: T](rescueFail: PartialFunction[Failure, U])(implicit executor: ExecutionContext): Future[U] = {
+        ConcreteFuture(underlying.map {
+            case f: Failure if (rescueFail.isDefinedAt(f)) => Success(rescueFail(f))
+            case f: Failure                                => f
+            case Success(s)                                => Success(s)
+        })
+    }
+
     def within(timeout: Duration)(implicit timer: Timer, executor: ExecutionContext): Future[T] = {
         val p = Promise[Result[T]]()
         timer.doAt(Time.now + timeout)(p success Failure(TimeoutFailure(TimeoutReason.Timer, Some(timeout))))
