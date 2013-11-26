@@ -142,4 +142,16 @@ class FutureTest extends Fictus {
         val future = Future(Success(7))
         future.within(10.millisecond()).await() mustEqual Success(7)
     }
+
+    @Test
+    def collect_success {
+        val fs = Vector(FutureSuccess(3), FutureSuccess(4))
+        Future.collect(fs).await mustEqual Success(Seq(3, 4))
+    }
+
+    @Test
+    def collect_fail {
+        val fs = Vector(FutureSuccess(3), FutureFail(failable))
+        Future.collect(fs).await mustEqual Failure(failable)
+    }
 }

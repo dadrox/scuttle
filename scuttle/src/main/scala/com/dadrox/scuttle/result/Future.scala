@@ -7,6 +7,8 @@ import scala.util.control.NonFatal
 import com.dadrox.scuttle.time.{ Time, Timer, Duration }
 import java.util.concurrent.TimeoutException
 import scala.concurrent.TimeoutException
+import java.util.concurrent.atomic.AtomicReferenceArray
+import java.util.concurrent.atomic.AtomicInteger
 
 object AwaitFailReason extends Enum {
     sealed case class EnumVal private[AwaitFailReason] (name: String) extends Value with Failure.Reason
@@ -89,10 +91,43 @@ trait Future[+T] {
 
 object Future {
 
+    private def handleThrowables(timeout: Option[Duration] = None): PartialFunction[Throwable, Failure] = {
+        case e: InterruptedException     => Failure(AwaitFailure(AwaitFailReason.Interrupted, cause = Some(e)))
+        case e: TimeoutException         => Failure(TimeoutFailure(TimeoutReason.Await, timeout, cause = Some(e)))
+        case e: IllegalArgumentException => Failure(AwaitFailure(AwaitFailReason.IllegalArgument, cause = Some(e)))
+        case NonFatal(e)                 => Failure(AwaitFailure(AwaitFailReason.Unknown, cause = Some(e)))
+    }
+
     // TODO collect, join, firstOf (select), etc?
 
-    //    def collect[A](fs: Seq[Future[A]]): Future[Seq[Result[A]]] = {
-    //    }
+    def collect[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Seq[A]] = {
+        import scala.collection.mutable
+
+        fs match {
+            case Seq() => FutureSuccess(Seq())
+            case results =>
+                val p = Promise[Result[Seq[A]]]
+
+                val results = new AtomicReferenceArray[A](fs.size)
+                val count = new AtomicInteger(fs.size)
+                for (i <- 0 until fs.size) {
+                    val f = fs(i)
+                    f.underlying.andThen {
+                        case ScalaSuccess(Success(s)) =>
+                            results.set(i, s)
+                            if (count.decrementAndGet() <= 0) {
+                                val resultsArray = new mutable.ArrayBuffer[A](fs.size)
+                                for (j <- 0 until fs.size) resultsArray += results.get(j)
+                                p.success(Success(resultsArray))
+                            }
+                        case ScalaSuccess(Failure(fd)) => if (!p.isCompleted) p.success(Failure(fd))
+                        case ScalaFailure(f)           => if (!p.isCompleted) p.success(handleThrowables()(f))
+                    }
+                }
+
+                ConcreteFuture(p.future)
+        }
+    }
 
     def apply[T](obj: => Result[T])(implicit executor: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(obj))
     def success[T](obj: T): Future[T] = FutureSuccess(obj)
