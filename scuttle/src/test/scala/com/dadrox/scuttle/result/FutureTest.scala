@@ -77,6 +77,15 @@ class FutureTest extends Fictus {
     }
 
     @Test
+    def filter {
+        (FutureSuccess(3) filter (3==)).await mustEqual Success(3)
+        (FutureSuccess(3) filter (2==)).await mustMatch { case Failure(Failure.FilterPredicateFalse(3)) => }
+
+        val failedFuture: Future[Int] = Future.fail(failable)
+        (failedFuture filter (3==)).await mustEqual Failure(failable)
+    }
+
+    @Test
     def createFuture {
         FutureSuccess(7).await() mustEqual Success(7)
     }

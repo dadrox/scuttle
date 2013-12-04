@@ -26,7 +26,7 @@ object Result {
 /** A response monad that carries detailed failure data.
  *  Sorta like a right-biased Either.
  */
-sealed abstract class Result[+S] {
+sealed abstract class Result[+S] { self =>
     def name(): String
 
     final def isSuccess(): Boolean = success.isDefined
@@ -103,30 +103,26 @@ sealed abstract class Result[+S] {
         this
     }
 
-    //    def filter(f: S => Boolean)(implicit ev: Failure.Convert => Failure): Result[S] = this match {
-    //        case Success(s) => if (f(s)) this else Failure(ev(Failure.Convert(s)))
-    //        case f: Failure => Failure(f)
-    //    }
-    //
-    //    final def withFilter(p: S => Boolean)(implicit ev: Failure.Convert[S] => F1): WithFilter[F1] = new WithFilter(p)
-    //
-    //    class WithFilter(p: S => Boolean)(implicit ev: Failure.Convert[S] => F1) {
-    //        def map[S1](f: S => S1): Result[S1] = self.filter[F1](p)(ev).map(f)
-    //        def flatMap[S1](f: S => Result[S1]): Result[S1] = self.filter[F1](p)(ev).flatMap(f)
-    //        def foreach[U](f: S => U): Unit = self.filter[F1](p)(ev).foreach(f)
-    //        def withFilter(q: S => Boolean): WithFilter[F1] = new WithFilter(x => p(x) && q(x))
-    //    }
+    def filter(f: S => Boolean): Result[S] = this match {
+        case Success(s) => if (f(s)) this else Failure(Failure.FilterPredicateFalse(s))
+        case failure    => failure
+    }
+
+    final def withFilter(p: S => Boolean): WithFilter = new WithFilter(p)
+
+    class WithFilter(p: S => Boolean) {
+        def map[S1](f: S => S1): Result[S1] = self.filter(p).map(f)
+        def flatMap[S1](f: S => Result[S1]): Result[S1] = self.filter(p).flatMap(f)
+        def foreach[U](f: S => U): Unit = self.filter(p).foreach(f)
+        def withFilter(q: S => Boolean): WithFilter = new WithFilter(x => p(x) && q(x))
+    }
 }
 
-object Success {
-    case class Convert[+S](a: S)
-}
 final case class Success[+S](value: S) extends Result[S] {
     override val name = "Success"
 }
 
 object Failure {
-
     trait Reason {
         def name(): String
     }
@@ -137,7 +133,13 @@ object Failure {
         def cause(): Option[Throwable]
     }
 
-    case class Convert(f: Failure)
+    case class FilterPredicateFalse(what: Any) extends Failure.Detail {
+        val reason = new Reason {
+            val name = "FilterPredicateFalse"
+        }
+        val message = s"filter predicate produced false for $what"
+        val cause = None
+    }
 }
 final case class Failure(detail: Failure.Detail) extends Result[Nothing] {
     override val name = "Failure"

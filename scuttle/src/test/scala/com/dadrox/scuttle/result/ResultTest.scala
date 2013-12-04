@@ -264,60 +264,58 @@ class ResultTest extends Fictus {
         xx.success() mustEqual Some(Void())
     }
 
-    //    // TODO How can I get rid of this?
-    //    implicit def i2f(xx: Failure.Convert[Int]) = {
-    //        new RuntimeException().fillInStackTrace().printStackTrace()
-    //        null
-    //    }
-    //
-    //    @Test
-    //    def filter {
-    //        Success(1) filter (1==) mustEqual Success(1)
-    //        Success(1) filter (2==) mustMatch { case Failure(_) => }
-    //        failed filter (2==) mustMatch { case Failure(_) => }
-    //        rawFail filter (_ => false) mustMatch { case Failure(_) => }
-    //        rawFail filter (_ => true) mustMatch { case Failure(_) => }
-    //    }
-    //
-    //    @Test
-    //    def withFilter_foreach {
-    //        expect(io.invoke) times 3
-    //
-    //        test {
-    //            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
-    //            failed.withFilter(_ => true).foreach(_ => io.invoke)
-    //            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
-    //            failed.withFilter(_ => true).foreach(_ => io.invoke)
-    //            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
-    //            failed.withFilter(_ => true).foreach(_ => io.invoke)
-    //            rawFail.withFilter(_ => true).foreach(_ => io.invoke)
-    //        }
-    //    }
-    //
-    //    @Test
-    //    def withFilter_map {
-    //        Success(1).withFilter(_ => true).map(1+) mustEqual Success(2)
-    //        failed.withFilter(_ => true).map(1+) mustMatch { case Failure(_) => }
-    //        rawFail.withFilter(_ => true).map(_ => 1) mustMatch { case Failure(_) => }
-    //    }
-    //
-    //    @Test
-    //    def withFilter_flatMap {
-    //        Success(1).withFilter(_ => true) flatMap (v => Success(v + 2)) mustEqual Success(3)
-    //        failed.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_) => }
-    //        rawFail.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_) => }
-    //    }
-    //
-    //    @Test
-    //    def withFilter_withFilter {
-    //        expect(io.invoke)
-    //
-    //        test {
-    //            Success(1).withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
-    //            failed.withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
-    //            Success(1).withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
-    //            failed.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
-    //            rawFail.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
-    //        }
-    //    }
+    implicit def convertToFailure(i: Int) = rawFail
+
+    @Test
+    def filter {
+        Success(1) filter (1==) mustEqual Success(1)
+        Success(1) filter (2==) mustMatch {
+            case Failure(Failure.FilterPredicateFalse(_)) =>
+        }
+        failed filter (2==) mustEqual failed
+        rawFail filter (_ => false) mustEqual rawFail
+        rawFail filter (_ => true) mustEqual rawFail
+    }
+
+    @Test
+    def withFilter_foreach {
+        expect(io.invoke) times 3
+
+        test {
+            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).foreach(_ => io.invoke)
+            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).foreach(_ => io.invoke)
+            Success(1).withFilter(_ => true).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).foreach(_ => io.invoke)
+            rawFail.withFilter(_ => true).foreach(_ => io.invoke)
+        }
+    }
+
+    @Test
+    def withFilter_map {
+        Success(1).withFilter(_ => true).map(1+) mustEqual Success(2)
+        failed.withFilter(_ => true).map(1+) mustMatch { case Failure(_) => }
+        rawFail.withFilter(_ => true).map(_ => 1) mustMatch { case Failure(_) => }
+    }
+
+    @Test
+    def withFilter_flatMap {
+        Success(1).withFilter(_ => true) flatMap (v => Success(v + 2)) mustEqual Success(3)
+        failed.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_) => }
+        rawFail.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_) => }
+    }
+
+    @Test
+    def withFilter_withFilter {
+        expect(io.invoke)
+
+        test {
+            Success(1).withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).withFilter(_ => true).foreach(_ => io.invoke)
+            Success(1).withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
+            failed.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
+            rawFail.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
+        }
+    }
 }

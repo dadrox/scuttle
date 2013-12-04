@@ -46,6 +46,10 @@ trait Future[+T] {
 
     final def foreach(fn: T => Unit)(implicit executor: ExecutionContext) = onSuccess(fn)
 
+    final def filter(predicate: T => Boolean)(implicit executor: ExecutionContext): Future[T] = flatMap { r =>
+        if (predicate(r)) FutureSuccess(r) else FutureFail(Failure.FilterPredicateFalse(r))
+    }
+
     final def onSuccess[U](fn: T => U)(implicit executor: ExecutionContext): Future[T] = {
         underlying.onSuccess {
             case Success(s) => fn(s)
