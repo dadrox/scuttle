@@ -1,6 +1,6 @@
 package com.dadrox.scuttle
 
-object string {
+package object string {
 
     implicit def converters(s: String) = new converters(s)
 
