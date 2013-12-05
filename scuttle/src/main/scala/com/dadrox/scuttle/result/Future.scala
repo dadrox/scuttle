@@ -50,6 +50,8 @@ trait Future[+T] {
         if (predicate(r)) FutureSuccess(r) else FutureFail(Failure.FilterPredicateFalse(r))
     }
 
+    final def withFilter(predicate: T => Boolean)(implicit executor: ExecutionContext): Future[T] = filter(predicate)
+
     final def onSuccess[U](fn: T => U)(implicit executor: ExecutionContext): Future[T] = {
         underlying.onSuccess {
             case Success(s) => fn(s)
