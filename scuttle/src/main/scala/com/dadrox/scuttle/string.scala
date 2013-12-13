@@ -2,8 +2,6 @@ package com.dadrox.scuttle
 
 package object string {
 
-    implicit def converters(s: String) = new converters(s)
-
     object IsInt {
         def unapply(s: String): Option[Int] = s.asInt
     }
@@ -40,7 +38,7 @@ package object string {
 
     /** Provides various functions to convert a String to something else safely (i.e. Options, not exceptions)
      */
-    class converters(s: String) {
+    implicit class converters(s: String) {
 
         def notNull: Option[String] = Option(s)
 
