@@ -1,5 +1,7 @@
 package com.dadrox.scuttle.result
 
+import com.dadrox.scuttle.CallInfo
+
 /** Represents nothing, but is a specific type that is completely incompatible with other types,
  *  whereas Nothing can stand in for any type and any type can stand in for Unit, both of which can "swallow" types
  *  This is useful for Result[Void] or Future[Void] where a Success or Failure is sufficient.
@@ -141,6 +143,8 @@ object Failure {
         val cause = None
     }
 }
-final case class Failure(detail: Failure.Detail) extends Result[Nothing] {
+
+final case class Failure(detail: Failure.Detail)(implicit callInfo: CallInfo = CallInfo.callSite) extends Result[Nothing] {
     override val name = "Failure"
+    override lazy val toString = s"Failure($detail): $callInfo"
 }

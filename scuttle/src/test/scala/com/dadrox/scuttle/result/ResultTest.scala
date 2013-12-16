@@ -318,4 +318,9 @@ class ResultTest extends Fictus {
             rawFail.withFilter(_ => true).withFilter(_ => false).foreach(_ => io.invoke)
         }
     }
+
+    @Test
+    def callInfo {
+        Failure(failureData).toString mustContain ("callInfo") mustContain ("ResultTest")
+    }
 }

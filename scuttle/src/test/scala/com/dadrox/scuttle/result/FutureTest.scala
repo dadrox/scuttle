@@ -186,4 +186,10 @@ class FutureTest extends Fictus {
         val fs = Vector(FutureSuccess(3), FutureFail(failable))
         Future.collect(fs).await mustEqual Failure(failable)
     }
+
+    @Test
+    def callInfo {
+        Future.fail(failable).await().toString mustContain ("callInfo") mustContain ("FutureTest")
+        FutureFail(failable).await().toString mustContain ("callInfo") mustContain ("FutureTest")
+    }
 }

@@ -1,11 +1,10 @@
 package com.dadrox.scuttle.time
 
-import com.dadrox.scuttle.result.Future
+import com.dadrox.scuttle.result._
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.Executors
 import scala.concurrent.Promise
-import com.dadrox.scuttle.result._
 import scala.util.control.NonFatal
 import scala.collection.mutable.ArrayBuffer
 

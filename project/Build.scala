@@ -29,6 +29,7 @@ object Settings extends Version {
       testFrameworks := Seq(testFramework),
       testListeners <+= target map (t => new com.dadrox.sbt.test.reports.Xml(t getName)),
       libraryDependencies in ThisBuild ++= Seq(
+          "org.scala-lang" % "scala-reflect" % scalaVersion.value,
           "junit" % "junit" % "4.11" % "test->default",
           "org.fictus" %% "fictus" % "0.9.1" % "test",
           "com.dadrox" % "sbt-junit" % "0.3.1" % "test")
@@ -55,6 +56,12 @@ object ScuttleBuild extends Build {
   lazy val scuttle = Project(
     id = "scuttle",
     base = file("scuttle"),
+    settings = Settings.commonSettings() ++ Seq(
+    )) dependsOn(scuttleMacros)
+
+  lazy val scuttleMacros = Project(
+    id = "scuttle-macros",
+    base = file("scuttle-macros"),
     settings = Settings.commonSettings() ++ Seq(
     ))
 

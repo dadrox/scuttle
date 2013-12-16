@@ -9,6 +9,7 @@ import java.util.concurrent.TimeoutException
 import scala.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReferenceArray
 import java.util.concurrent.atomic.AtomicInteger
+import com.dadrox.scuttle.CallInfo
 
 object AwaitFailReason extends Enum {
     sealed case class EnumVal private[AwaitFailReason] (name: String) extends Value with Failure.Reason
@@ -144,8 +145,9 @@ object Future {
     }
 
     def apply[T](obj: => Result[T])(implicit executor: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(obj))
+    def apply[T](underlying: ScalaFuture[Result[T]])(implicit executor: ExecutionContext): Future[T] = ConcreteFuture(underlying)
     def success[T](obj: T): Future[T] = FutureSuccess(obj)
-    def fail(failure: Failure.Detail): Future[Nothing] = FutureFail(failure)
+    def fail(failure: Failure.Detail)(implicit callInfo: CallInfo = CallInfo.callSite): Future[Nothing] = FutureFail(failure)
 
     def immediateExecutor = new ExecutionContext {
         def reportFailure(t: Throwable) {}
@@ -153,12 +155,17 @@ object Future {
     }
 }
 
+
+// TODO hide these case classes, so we only have one way of doing things
+
 case class ConcreteFuture[T](underlying: ScalaFuture[Result[T]]) extends Future[T]
 
 case class FutureSuccess[T](obj: T) extends Future[T] {
     def underlying: ScalaFuture[Result[T]] = ScalaFuture.successful(Success(obj))
 }
 
-case class FutureFail(failure: Failure.Detail) extends Future[Nothing] {
+case class FutureFail(failure: Failure.Detail)(
+    implicit callInfo: CallInfo = CallInfo.callSite)
+        extends Future[Nothing] {
     def underlying: ScalaFuture[Result[Nothing]] = ScalaFuture.successful(Failure(failure))
 }
