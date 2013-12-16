@@ -67,7 +67,7 @@ class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
             }
         }
         executor.schedule(r, Time.now.until(when).inMilliseconds(), java.util.concurrent.TimeUnit.MILLISECONDS)
-        ConcreteFuture(p.future)
+        Future(p.future)
     }
 
     def stop() {
@@ -132,7 +132,7 @@ class FakeTimer(timeSource: TimeSource) extends Timer {
         val p = Promise[Result[A]]()
         val task = OneShotTask[A](time, () => fn, p)
         tasks += task
-        ConcreteFuture(p.future)
+        Future(p.future)
     }
 
     def stop() {}
