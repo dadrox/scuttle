@@ -1,6 +1,6 @@
 package com.dadrox.scuttle
 
-import concurrent.duration.{ Duration => ScalaDuration }
+import scala.concurrent.duration.{ Duration => ScalaDuration }
 import com.dadrox.scuttle.time.{ Duration, Time }
 
 package object time {

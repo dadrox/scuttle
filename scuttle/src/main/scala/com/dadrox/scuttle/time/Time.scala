@@ -19,9 +19,9 @@ trait TimeSource extends DurationSource[Time] {
     val Epoch = new Time(0)
     val epoch = Epoch
 
-    override val Max = new Time(Long.MaxValue)
-    override val Min = new Time(Long.MinValue)
-    def fromMilliseconds(ms: Long) = new Time(ms)
+    val Max = new Time(MaxMilliseconds)
+    val Min = new Time(MinMilliseconds)
+    def apply(ms: Long) = new Time(ms)
 
     def fromDate(date: java.util.Date): Time = fromMilliseconds(date.getTime())
 

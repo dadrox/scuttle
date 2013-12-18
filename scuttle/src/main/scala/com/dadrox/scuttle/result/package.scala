@@ -1,6 +1,6 @@
 package com.dadrox.scuttle
 
 package object result {
-    type ExecutionContext = concurrent.ExecutionContext
-    val ExecutionContext = concurrent.ExecutionContext
+    type ExecutionContext = scala.concurrent.ExecutionContext
+    val ExecutionContext = scala.concurrent.ExecutionContext
 }

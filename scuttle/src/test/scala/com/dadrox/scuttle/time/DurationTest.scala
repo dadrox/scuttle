@@ -1,10 +1,6 @@
 package com.dadrox.scuttle.time
 
-import org.junit.Test
-import org.fictus.Fictus
-import com.dadrox.scuttle.time._
-
-class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
+class DurationTest extends DurationSourceTestBase(Duration) with org.fictus.Fictus {
     @Test
     def int_implicits {
         3.seconds mustEqual Duration.fromSeconds(3)
@@ -30,7 +26,7 @@ class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
         (scuttleDuration: scala.concurrent.duration.Duration) mustEqual scalaDuration
 
         shouldThrow[IllegalArgumentException] {
-            (ScalaDuration.Inf: Duration) mustEqual Duration.Max()
+            (ScalaDuration.Inf: Duration) mustEqual Duration.Infinite
         }
     }
 
@@ -49,7 +45,7 @@ class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
         scuttleDuration.asScala mustEqual scalaDuration
 
         shouldThrow[IllegalArgumentException] {
-            ScalaDuration.Inf.asScuttle mustEqual Duration.Max()
+            ScalaDuration.Inf.asScuttle mustEqual Duration.Infinite
         }
     }
 
@@ -105,9 +101,11 @@ class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
         (1.week + 1.day + 1.hour + 1.minute + 1.second + 1.ms).toString(terse = true)
             .mustEqual("+1.w+1.d+1.h+1.m+1.s+1.ms")
 
-        Duration.Min.toString mustEqual "-15250284452.weeks-3.days-7.hours-12.minutes-55.seconds-807.milliseconds"
-        Duration.Max.toString mustEqual "+15250284452.weeks+3.days+7.hours+12.minutes+55.seconds+807.milliseconds"
-        Duration.Max.toString(TimeUnit.Millisecond) mustEqual "+9223372036854775807.milliseconds"
+        Duration.NegativeInfinite.toString mustEqual NegativeInfinity.toString
+        Duration.Infinite.toString mustEqual Infinity.toString
+        (Duration.fromMilliseconds(Long.MinValue + 2)).toString mustEqual "-15250284452.weeks-3.days-7.hours-12.minutes-55.seconds-806.milliseconds"
+        (Duration.fromMilliseconds(Long.MaxValue - 1)).toString mustEqual "+15250284452.weeks+3.days+7.hours+12.minutes+55.seconds+806.milliseconds"
+        Duration.Infinite.toString(TimeUnit.Millisecond) mustEqual "+9223372036854775807.milliseconds"
 
         1000.ms.toString mustEqual "+1.second"
         60.seconds.toString mustEqual "+1.minute"
@@ -120,5 +118,58 @@ class DurationTest extends DurationSourceTestBase(Duration) with Fictus {
         120.minutes.toString mustEqual "+2.hours"
         48.hours.toString mustEqual "+2.days"
         14.days.toString mustEqual "+2.weeks"
+    }
+
+    @Test
+    def infinite_duration {
+        Infinity.inMilliseconds mustEqual Duration.Infinite.inMilliseconds
+        Infinity + 3.weeks mustEqual Infinity
+        Infinity - 3.weeks mustEqual Infinity
+        Infinity * 3 mustEqual Infinity
+        Infinity / 3 mustEqual Infinity
+        Infinity % 3 mustEqual Infinity
+        Infinity.abs mustEqual Infinity
+        -Infinity mustEqual NegativeInfinity
+        Infinity.finite_?() mustEqual false
+    }
+
+    @Test
+    def negative_infinite_duration {
+        NegativeInfinity.inMilliseconds mustEqual Duration.NegativeInfinite.inMilliseconds
+        NegativeInfinity + 3.weeks mustEqual NegativeInfinity
+        NegativeInfinity - 3.weeks mustEqual NegativeInfinity
+        NegativeInfinity * 3 mustEqual NegativeInfinity
+        NegativeInfinity / 3 mustEqual NegativeInfinity
+        NegativeInfinity % 3 mustEqual NegativeInfinity
+        NegativeInfinity.abs mustEqual Infinity
+        -NegativeInfinity mustEqual Infinity
+        NegativeInfinity.finite_?() mustEqual false
+    }
+
+    @Test
+    def divide_by_zero {
+        shouldThrow[java.lang.ArithmeticException](3.seconds / 0)
+    }
+
+    @Test
+    def duration_overflows_to_inifinity {
+        Duration.Infinite + 1.ms mustEqual Infinity
+        Duration.Infinite - -1.ms mustEqual Infinity
+        Duration.Infinite * 2 mustEqual Infinity
+        Duration.NegativeInfinite * -2 mustEqual Infinity
+
+        (Duration.fromMilliseconds(Long.MaxValue - 1) / 2 + 1.ms) * 2 mustEqual Infinity
+
+        Long.MaxValue.milliseconds mustEqual Infinity
+    }
+
+    @Test
+    def duration_underflows_to_negative_inifinity {
+        Duration.NegativeInfinite + -1.ms mustEqual NegativeInfinity
+        Duration.NegativeInfinite - 1.ms mustEqual NegativeInfinity
+        Duration.NegativeInfinite * 2 mustEqual NegativeInfinity
+        Duration.Infinite * -2 mustEqual NegativeInfinity
+        (Long.MinValue + 1).milliseconds mustEqual NegativeInfinity
+        Long.MinValue.milliseconds mustEqual NegativeInfinity
     }
 }

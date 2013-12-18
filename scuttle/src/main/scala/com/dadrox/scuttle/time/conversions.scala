@@ -1,6 +1,5 @@
 package com.dadrox.scuttle.time
 
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.duration.{ Duration => ScalaDuration }
 
 object conversions {

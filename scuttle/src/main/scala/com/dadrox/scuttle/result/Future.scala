@@ -1,15 +1,11 @@
 package com.dadrox.scuttle.result
 
-import com.dadrox.scuttle.Enum
-import scala.concurrent.{ Future => ScalaFuture, _ }
+import java.util.concurrent.atomic.{ AtomicReferenceArray, AtomicInteger }
+import com.dadrox.scuttle.{ CallInfo, Enum }
+import com.dadrox.scuttle.time.{ Time, Timer, Duration }
+import scala.concurrent.{ Await, Future => ScalaFuture, Promise, TimeoutException }
 import scala.util.{ Success => ScalaSuccess, Failure => ScalaFailure }
 import scala.util.control.NonFatal
-import com.dadrox.scuttle.time.{ Time, Timer, Duration }
-import java.util.concurrent.TimeoutException
-import scala.concurrent.TimeoutException
-import java.util.concurrent.atomic.AtomicReferenceArray
-import java.util.concurrent.atomic.AtomicInteger
-import com.dadrox.scuttle.CallInfo
 
 object AwaitFailReason extends Enum {
     sealed case class EnumVal private[AwaitFailReason] (name: String) extends Value with Failure.Reason

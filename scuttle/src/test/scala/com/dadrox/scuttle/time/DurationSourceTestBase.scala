@@ -1,9 +1,6 @@
 package com.dadrox.scuttle.time
 
-import org.fictus.Fictus
-import org.junit.Test
-
-abstract class DurationSourceTestBase[A <: DurationInstance[A]](ops: DurationSource[A]) extends Fictus {
+abstract class DurationSourceTestBase[A <: DurationInstance[A]](ops: DurationSource[A]) extends org.fictus.Fictus {
 
     @Test
     def simple_conversions {
