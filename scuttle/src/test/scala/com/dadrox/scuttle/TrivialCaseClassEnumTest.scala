@@ -112,4 +112,27 @@ class TrivialCaseClassEnumTest extends Fictus {
             case it @ SealedCaseClassEnumWithSealedTrait.C => it mustEqual SealedCaseClassEnumWithSealedTrait.C
         }
     }
+
+    @Test
+    def working_exhaustive_match_example_deterministic_evaluation_breaks_ARRRRR {
+        object WorkingExhaustiveMatchEnum extends Enum {
+            sealed abstract class EnumVal private[WorkingExhaustiveMatchEnum] (override val name: String) extends Value
+
+            object A extends EnumVal("A")
+            object B extends EnumVal("B")
+        }
+
+        // antitest
+        WorkingExhaustiveMatchEnum.values mustEqual Vector()
+
+        println(WorkingExhaustiveMatchEnum.values) // DAMMIT
+
+        // Exhaustive match actually works! However, each inner object is evaluated lazily :(
+        val instance: WorkingExhaustiveMatchEnum.EnumVal = WorkingExhaustiveMatchEnum.A
+        instance match {
+            //            case WorkingExhaustiveMatchEnum.B =>
+            case WorkingExhaustiveMatchEnum.A =>
+        }
+
+    }
 }

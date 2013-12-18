@@ -37,7 +37,7 @@ trait Enum {
 
         override def toString = this match {
             case product: Product => scala.runtime.ScalaRunTime._toString(this.asInstanceOf[Product]).replace("EnumVal", Enum.this.name)
-            case _                => name
+            case _                => s"${Enum.this.name}.$name"
         }
 
         override def equals(other: Any) = other match {
