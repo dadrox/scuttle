@@ -23,7 +23,6 @@ object Settings extends Version {
     Project.defaultSettings ++ Seq(
       organization := Data.org,
       version := fullVersion,
-      crossScalaVersions in ThisBuild := Seq("2.9.2", "2.10.2"),
       scalaVersion in ThisBuild := "2.10.2",
       packageOptions := Seq(Package.ManifestAttributes("Implementation-Version" -> fullVersion)),
       testFrameworks := Seq(testFramework),
