@@ -64,9 +64,9 @@ class TraitEnumTest extends Fictus {
         A mustNotEqual B
 
         A.name mustEqual "A"
-        A.toString mustEqual "A"
+        A.toString mustEqual "EnumVal.A"
         B.name mustEqual "B"
-        B.toString mustEqual "B"
+        B.toString mustEqual "EnumVal.B"
 
         values mustEqual Vector(A, B)
     }
