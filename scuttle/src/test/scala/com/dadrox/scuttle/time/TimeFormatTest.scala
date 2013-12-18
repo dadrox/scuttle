@@ -1,7 +1,6 @@
 package com.dadrox.scuttle.time
 
 import org.fictus.Fictus
-import org.junit.Test
 import java.util.Date
 import com.dadrox.scuttle.time._
 

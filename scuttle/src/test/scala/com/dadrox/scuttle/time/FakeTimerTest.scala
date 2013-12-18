@@ -1,7 +1,6 @@
 package com.dadrox.scuttle.time
 
 import org.fictus.Fictus
-import org.junit.Test
 import com.dadrox.scuttle.result._
 
 class FakeTimerTest extends Fictus {

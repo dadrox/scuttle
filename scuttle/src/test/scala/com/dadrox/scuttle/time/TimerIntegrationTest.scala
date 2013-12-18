@@ -1,12 +1,10 @@
 package com.dadrox.scuttle.time
 
-import com.dadrox.scuttle.time._
-import org.fictus.Fictus
-import org.junit.Test
-import scala.util.control.NonFatal
-import org.junit.Before
 import com.dadrox.scuttle.result._
+import com.dadrox.scuttle.time._
 import com.dadrox.scuttle.time.conversions._
+import org.fictus.Fictus
+import scala.util.control.NonFatal
 
 class TimerIntegrationTest extends Fictus {
 

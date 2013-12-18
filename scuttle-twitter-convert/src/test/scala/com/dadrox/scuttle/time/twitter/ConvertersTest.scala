@@ -1,8 +1,7 @@
 package com.dadrox.scuttle.time.twitter
 
 import org.fictus.Fictus
-import org.junit.Test
-import com.dadrox.scuttle.time.{ Duration, Time }
+import com.dadrox.scuttle.time._
 import com.twitter.util.{ Duration => TwitterDuration, Time => TwitterTime }
 
 class ConvertersTest extends Fictus {

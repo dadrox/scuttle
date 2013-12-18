@@ -1,6 +1,5 @@
 package com.dadrox.scuttle
 
-import org.junit.Test
 import org.fictus.Fictus
 
 object TraitEnum extends Enum {

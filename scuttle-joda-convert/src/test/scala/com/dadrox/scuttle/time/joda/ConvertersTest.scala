@@ -1,8 +1,7 @@
 package com.dadrox.scuttle.time.joda
 
 import org.fictus.Fictus
-import org.junit.Test
-import com.dadrox.scuttle.time.{ Duration, Time }
+import com.dadrox.scuttle.time._
 import org.joda.time.{ DateTime => JodaTime, Duration => JodaDuration }
 import org.joda.time.format.DateTimeFormat
 

@@ -1,6 +1,5 @@
 package com.dadrox.scuttle.result
 
-import org.junit.Test
 import org.fictus.Fictus
 import com.dadrox.scuttle.Enum
 
