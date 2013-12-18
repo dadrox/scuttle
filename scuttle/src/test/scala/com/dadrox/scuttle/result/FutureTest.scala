@@ -176,6 +176,36 @@ class FutureTest extends Fictus {
     }
 
     @Test
+    def rescueFlat_failureToFailure {
+        Future.fail(failable).rescueFlat {
+            case failure => Future.fail(anotherFailable)
+        }.await() mustEqual Failure(anotherFailable)
+    }
+
+    @Test
+    def rescueFlat_failureToSuccess {
+        val successValue = 3
+        Future.fail(failable).rescueFlat {
+            case failure => Future.success(successValue)
+        }.await() mustEqual Success(successValue)
+    }
+
+    @Test
+    def rescueFlat_successToSuccess {
+        val successValue = 3
+        Future.success(successValue).rescueFlat {
+            case _ => Future.fail(anotherFailable)
+        }.await() mustEqual Success(successValue)
+    }
+
+    @Test
+    def rescueFlat_notDefinedAt {
+        Future.fail(failable).rescueFlat {
+            case `anotherFailable` => Future.fail(null)
+        }.await() mustEqual Failure(failable)
+    }
+
+    @Test
     def collect_success {
         val fs = Vector(FutureSuccess(3), FutureSuccess(4))
         Future.collect(fs).await mustEqual Success(Seq(3, 4))
