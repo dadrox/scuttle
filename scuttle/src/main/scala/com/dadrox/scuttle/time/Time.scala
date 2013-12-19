@@ -5,12 +5,8 @@ import scala.util.control.NonFatal
 object Time extends TimeSource
 
 case class Time(milliseconds: Long) extends TimeInstance[Time] {
-    import Time._
-
     override val ops = Time
-    override def inMilliseconds = milliseconds
-
-    override lazy val toString = defaultFormat.format(this)
+    override lazy val toString = Time.defaultFormat.format(this)
 }
 
 trait TimeSource extends DurationSource[Time] {
@@ -38,48 +34,24 @@ trait TimeSource extends DurationSource[Time] {
 }
 
 trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
-    def toDate: java.util.Date = new java.util.Date(inMilliseconds)
+    def toDate: java.util.Date = new java.util.Date(milliseconds)
 
-    /** Formats the Time to UTC
-     */
+    /** Formats the Time to UTC */
     def format(pattern: String): String = new TimeFormat(pattern).format(this)
 
     def since(when: A): Duration = this - when
     def until(when: A): Duration = when - this
 
-    def -(when: TimeInstance[A]): Duration = Duration(inMilliseconds - when.inMilliseconds)
+    def -(when: TimeInstance[A]): Duration = Duration(milliseconds - when.milliseconds)
 
-    def floor(d: Duration) = Time.fromMilliseconds(inMilliseconds / d.inMilliseconds * d.inMilliseconds)
-    def ceiling(d: Duration) = if(inMilliseconds % d.inMilliseconds == 0) floor(d) else floor(d) + d
+    def floor(d: Duration) = Time.fromMilliseconds(milliseconds / d.milliseconds * d.milliseconds)
+    def ceiling(d: Duration) = if (milliseconds % d.milliseconds == 0) floor(d) else floor(d) + d
 
-    /** Midnight leading into the day. The beginning of the day. 00:00
-     */
+    /** Midnight leading into the day. The beginning of the day. 00:00 */
     def midnight0000 = floor(Duration.fromDays(1))
 
-    /** Midnight at the end of the day. Techincally the beginning of the next day.
-     */
+    /** Midnight at the end of the day. Techincally the beginning of the next day. */
     def midnight2400 = floor(Duration.fromDays(1)) + Duration.fromDays(1)
-}
-
-object ljkakafsh extends App {
-    val utc = java.util.TimeZone.getTimeZone("UTC")
-    val tz = java.util.TimeZone.getTimeZone("America/Denver")
-    //    val now = Time.now
-    //    val xx = new java.util.SimpleTimeZone(tz.getOffset(now.inMillis), "don't care")
-
-    def d(s: String) = {
-
-        val dateFormat = new java.text.SimpleDateFormat("yyyyMMdd HH:mm:ss Z")
-        dateFormat.setTimeZone(utc)
-        println(s + ": " + dateFormat.format(Time.parse("yyyyMMddHHmm", s).get.toDate))
-        dateFormat.setTimeZone(tz)
-        println(s + ": " + dateFormat.format(Time.parse("yyyyMMddHHmm", s).get.toDate))
-
-        val whenev = Time.fromSeconds(1371056400L)
-        println(whenev + " - " + dateFormat.format(whenev.toDate))
-    }
-
-    d("201306121800")
 }
 
 class TimeFormat(pattern: String) {

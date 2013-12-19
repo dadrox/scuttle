@@ -1,62 +1,46 @@
 package com.dadrox.scuttle.time
 
 object Duration extends DurationSource[Duration] {
-    object Millis {
-        val perSecond = 1000L
-        val perMinute = perSecond * 60L
-        val perHour = perMinute * 60L
-        val perDay = perHour * 24L
-        val perWeek = perDay * 7L
-    }
-
     def apply(milliseconds: Long) =
-        if(milliseconds >= MaxMilliseconds) Infinite
-        else if(milliseconds <= MinMilliseconds) NegativeInfinite
+        if (milliseconds >= MaxMilliseconds) Infinite
+        else if (milliseconds <= MinMilliseconds) NegativeInfinite
         else FiniteDuration(milliseconds)
 
     lazy val Infinite = Infinity
     lazy val NegativeInfinite = NegativeInfinity
 }
 
-private[time] case object Infinity extends Duration {
-    def milliseconds = ops.MaxMilliseconds
-
-    override def abs: Duration = this
-    override def unary_-(): Duration = NegativeInfinity
-    override def *(scalar: Long): Duration = if(scalar < 0) NegativeInfinity else this
-    override def /(scalar: Long): Duration = if(scalar < 0) NegativeInfinity else this
-    override def %(scalar: Long): Duration = this
+trait Inf extends Duration {
+    override def abs: Duration = Infinity
     override def finite_?(): Boolean = false
 
+    override def *(scalar: Long): Duration = flip(scalar)
+    override def /(scalar: Long): Duration = flip(scalar)
+    private def flip(scalar: Long) = if (scalar < 0) -this else this
+
+    override def %(scalar: Long): Duration = this
     override def +(other: Duration): Duration = this
     override def -(other: Duration): Duration = this
 
+}
+
+private[time] case object Infinity extends Inf {
+    def milliseconds = ops.MaxMilliseconds
     override val toString = "InfinityDuration"
 }
 
-private[time] case object NegativeInfinity extends Duration {
+private[time] case object NegativeInfinity extends Inf {
     def milliseconds = ops.MinMilliseconds
-
-    override def abs: Duration = Infinity
-    override def unary_-(): Duration = Infinity
-    override def *(scalar: Long): Duration = if(scalar < 0) Infinity else this
-    override def /(scalar: Long): Duration = if(scalar < 0) Infinity else this
-    override def %(scalar: Long): Duration = this
-    override def finite_?(): Boolean = false
-
-    override def +(other: Duration): Duration = this
-    override def -(other: Duration): Duration = this
-
     override val toString = "NegativeInfinityDuration"
 }
 
 trait Duration extends DurationInstance[Duration] {
     override val ops = Duration
 
-    def abs: Duration = if (milliseconds < 0) -this else ops(inMilliseconds)
-    def unary_-(): Duration = ops(-inMilliseconds)
-    def /(scalar: Long): Duration = ops(inMilliseconds / scalar)
-    def %(scalar: Long): Duration = ops(inMilliseconds % scalar)
+    def abs: Duration = if (milliseconds < 0) -this else ops(milliseconds)
+    def unary_-(): Duration = ops(-milliseconds)
+    def /(scalar: Long): Duration = ops(milliseconds / scalar)
+    def %(scalar: Long): Duration = ops(milliseconds % scalar)
     def finite_?(): Boolean = true
 
     def *(scalar: Long): Duration = {
@@ -77,8 +61,8 @@ trait Duration extends DurationInstance[Duration] {
     }
 
     override def +(other: Duration): Duration = {
-        val ms = inMilliseconds
-        val otherMs = other.inMilliseconds
+        val ms = milliseconds
+        val otherMs = other.milliseconds
         if (otherMs > 0 && ms > Long.MaxValue - otherMs) ops.Infinite
         else if (otherMs < 0 && ms < -Long.MaxValue - otherMs) ops.NegativeInfinite
         else ops.fromMilliseconds(ms + otherMs)
@@ -93,12 +77,12 @@ trait Duration extends DurationInstance[Duration] {
         val sign = if (milliseconds < 0) "-" else "+"
         val sb = new StringBuilder
         for (
-            u <- TimeUnit.values.flatMap { d => if (d.msPer > maxTimeUnit.msPer) None else Some(d) }
+            u <- TimeUnit.values.flatMap { d => if (d.ms > maxTimeUnit.ms) None else Some(d) }
         ) {
-            val dividend = remainder / u.msPer
+            val dividend = remainder / u.ms
             if (dividend > 0) {
                 sb.append(sign + dividend + "." + (if (terse) u.short else u.name))
-                remainder -= dividend * u.msPer
+                remainder -= dividend * u.ms
                 if (!terse && dividend > 1) sb.append("s")
             }
         }
@@ -114,32 +98,33 @@ trait DurationSource[A <: DurationInstance[A]] {
     val MaxMilliseconds = Long.MaxValue
     val MinMilliseconds = -MaxMilliseconds
 
+    import TimeUnit._
     def fromMilliseconds(ms: Long): A = apply(ms)
-    def fromSeconds(s: Long): A = fromMilliseconds(s * Duration.Millis.perSecond)
-    def fromMinutes(m: Long): A = fromMilliseconds(m * Duration.Millis.perMinute)
-    def fromHours(h: Long): A = fromMilliseconds(h * Duration.Millis.perHour)
-    def fromDays(d: Long): A = fromMilliseconds(d * Duration.Millis.perDay)
-    def fromWeeks(w: Long): A = fromMilliseconds(w * Duration.Millis.perWeek)
+    def fromSeconds(s: Long): A = fromMilliseconds(s * Second.ms)
+    def fromMinutes(m: Long): A = fromMilliseconds(m * Minute.ms)
+    def fromHours(h: Long): A = fromMilliseconds(h * Hour.ms)
+    def fromDays(d: Long): A = fromMilliseconds(d * Day.ms)
+    def fromWeeks(w: Long): A = fromMilliseconds(w * Week.ms)
 }
 
 trait DurationInstance[A <: DurationInstance[A]] extends Ordered[A] {
-    import Duration._
+    import TimeUnit._
     protected def ops: DurationSource[A]
 
     def milliseconds: Long // abstract
 
     def inMilliseconds = milliseconds
-    def inMillis: Long = inMilliseconds
-    def inMs: Long = inMilliseconds
+    def inMillis: Long = milliseconds
+    def inMs: Long = milliseconds
 
-    def inSeconds: Int = (inMilliseconds / Millis.perSecond).toInt
-    def inMinutes: Int = (inMilliseconds / Millis.perMinute).toInt
-    def inHours: Int = (inMilliseconds / Millis.perHour).toInt
-    def inDays: Int = (inMilliseconds / Millis.perDay).toInt
-    def inWeeks: Int = (inMilliseconds / Millis.perWeek).toInt
+    def inSeconds: Int = (milliseconds / Second.ms).toInt
+    def inMinutes: Int = (milliseconds / Minute.ms).toInt
+    def inHours: Int = (milliseconds / Hour.ms).toInt
+    def inDays: Int = (milliseconds / Day.ms).toInt
+    def inWeeks: Int = (milliseconds / Week.ms).toInt
 
-    def +(other: Duration): A = ops.fromMilliseconds(inMilliseconds + other.inMilliseconds)
+    def +(other: Duration): A = ops.fromMilliseconds(milliseconds + other.milliseconds)
     def -(other: Duration): A = this + -other
 
-    override def compare(other: A): Int = inMilliseconds compare other.inMilliseconds
+    override def compare(other: A): Int = milliseconds compare other.milliseconds
 }
