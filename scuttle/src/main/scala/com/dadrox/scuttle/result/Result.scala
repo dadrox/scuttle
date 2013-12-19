@@ -144,7 +144,7 @@ object Failure {
     }
 }
 
-final case class Failure(detail: Failure.Detail)(implicit callInfo: CallInfo = CallInfo.callSite) extends Result[Nothing] {
+final case class Failure(detail: Failure.Detail)(implicit val callInfo: CallInfo = CallInfo.callSite) extends Result[Nothing] {
     override val name = "Failure"
     override lazy val toString = s"Failure($detail): $callInfo"
 }
