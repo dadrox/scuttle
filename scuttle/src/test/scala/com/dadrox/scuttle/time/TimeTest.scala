@@ -54,8 +54,8 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
         val epoch = Time.Epoch
         val date = new Date(0)
 
-        date.asScuttle() mustEqual epoch
-        epoch.asJava() mustEqual date
+        date.asScuttle mustEqual epoch
+        epoch.asJava mustEqual date
     }
 
     @Test
@@ -91,8 +91,19 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
     def ceiling {
         (Now + 30.minutes) ceiling 1.hour mustEqual Now + 1.hour
         (Now + 30.minutes) ceiling 12.hours mustEqual Now + 12.hours
-        Now ceiling 12.hours mustEqual Now + 12.hours
         Now ceiling 5.hours mustEqual Now + 3.hours
+
+    }
+
+    @Test
+    def floor_stays_where_it_is_if_even_already {
+        Time.Epoch floor 1.hour mustEqual Time.Epoch
+    }
+
+    @Test
+    def ceiling_stays_where_it_is_if_even_already {
+        Now ceiling 12.hours mustEqual Now
+        Time.Epoch ceiling 1.hour mustEqual Time.Epoch
     }
 
     @Test

@@ -97,7 +97,7 @@ trait Future[+T] {
     def await(): Result[T] = await(Duration.fromDays(1))
 
     def await(atMost: Duration): Result[T] = {
-        try Await.result(underlying, atMost.asScala())
+        try Await.result(underlying, atMost.asScala)
         catch {
             case e: InterruptedException     => Failure(AwaitFailure(AwaitFailReason.Interrupted, cause = Some(e)))
             case e: TimeoutException         => Failure(TimeoutFailure(TimeoutReason.Await, Some(atMost), cause = Some(e)))

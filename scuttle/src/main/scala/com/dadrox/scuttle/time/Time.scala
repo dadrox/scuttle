@@ -50,7 +50,7 @@ trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
     def -(when: TimeInstance[A]): Duration = Duration(inMilliseconds - when.inMilliseconds)
 
     def floor(d: Duration) = Time.fromMilliseconds(inMilliseconds / d.inMilliseconds * d.inMilliseconds)
-    def ceiling(d: Duration) = floor(d) + d
+    def ceiling(d: Duration) = if(inMilliseconds % d.inMilliseconds == 0) floor(d) else floor(d) + d
 
     /** Midnight leading into the day. The beginning of the day. 00:00
      */
@@ -58,7 +58,7 @@ trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
 
     /** Midnight at the end of the day. Techincally the beginning of the next day.
      */
-    def midnight2400() = ceiling(Duration.fromDays(1))
+    def midnight2400() = floor(Duration.fromDays(1)) + Duration.fromDays(1)
 }
 
 object ljkakafsh extends App {
