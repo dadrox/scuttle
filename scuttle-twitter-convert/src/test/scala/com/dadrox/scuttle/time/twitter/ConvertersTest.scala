@@ -50,8 +50,6 @@ class ConvertersTest extends Fictus {
 
     @Test
     def scuttleTimeToTwitter_converter {
-        import com.dadrox.scuttle.time.twitter.converters.scuttleTimeToTwitterTime
-
         val scuttle = Time.Epoch.asTwitter
         val twitter = TwitterTime.epoch
 
@@ -61,8 +59,6 @@ class ConvertersTest extends Fictus {
 
     @Test
     def twitterTimeToScuttle_converter {
-        import com.dadrox.scuttle.time.twitter.converters.twitterTimeToScuttleTime
-
         val scuttle = Time.Epoch
         val twitter = TwitterTime.epoch.asScuttle
 
@@ -71,8 +67,6 @@ class ConvertersTest extends Fictus {
     }
     @Test
     def scuttleDurationToTwitter_converter {
-        import com.dadrox.scuttle.time.twitter.converters.scuttleDurationToTwitterDuration
-
         val scuttle = Duration.fromSeconds(3).asTwitter
         val twitter = TwitterDuration.fromTimeUnit(3, java.util.concurrent.TimeUnit.SECONDS)
 
@@ -82,8 +76,6 @@ class ConvertersTest extends Fictus {
 
     @Test
     def twitterDurationToScuttle_converter {
-        import com.dadrox.scuttle.time.twitter.converters.twitterDurationToScuttleDuration
-
         val scuttle = Duration.fromSeconds(3)
         val twitter = TwitterDuration.fromTimeUnit(3, java.util.concurrent.TimeUnit.SECONDS).asScuttle
 
