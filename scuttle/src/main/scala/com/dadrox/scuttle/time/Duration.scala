@@ -37,7 +37,7 @@ private[time] case object NegativeInfinity extends Inf {
 trait Duration extends DurationInstance[Duration] {
     override val ops = Duration
 
-    def abs: Duration = if (milliseconds < 0) -this else ops(milliseconds)
+    def abs: Duration = if (milliseconds < 0) -this else this
     def unary_-(): Duration = ops(-milliseconds)
     def /(scalar: Long): Duration = ops(milliseconds / scalar)
     def %(scalar: Long): Duration = ops(milliseconds % scalar)

@@ -30,7 +30,7 @@ object Settings extends Version {
       libraryDependencies in ThisBuild ++= Seq(
           "org.scala-lang" % "scala-reflect" % scalaVersion.value,
           "junit" % "junit" % "4.11" % "test->default",
-          "org.fictus" %% "fictus" % "0.9.1" % "test",
+          "org.fictus" %% "fictus" % "0.9.3" % "test",
           "com.dadrox" % "sbt-junit" % "0.3.1" % "test")
     )
   }
