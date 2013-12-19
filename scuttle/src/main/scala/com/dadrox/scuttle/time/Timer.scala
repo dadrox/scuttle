@@ -20,7 +20,7 @@ object Timer {
     def apply(threads: Int = 2, name: String = "Timer", daemonThreads: Boolean = false) =
         new PooledTimer(threads, name, daemonThreads)
 
-    def integrationTestTimer() = new PooledTimer(threads = 1, name = "TestTimer", daemonThreads = true)
+    def integrationTestTimer = new PooledTimer(threads = 1, name = "TestTimer", daemonThreads = true)
 
     def fake(timeSource: TimeSource = FakeTime()) = new FakeTimer(timeSource)
 }
@@ -46,7 +46,7 @@ class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
 
     def repeat(start: Time, period: Duration)(fn: => Unit): TimerTask = {
         val r = new Runnable { def run = fn }
-        val javaFuture = executor.scheduleAtFixedRate(r, Time.now.until(start).inMilliseconds(), period.inMilliseconds(), java.util.concurrent.TimeUnit.MILLISECONDS)
+        val javaFuture = executor.scheduleAtFixedRate(r, Time.now.until(start).inMilliseconds, period.inMilliseconds, java.util.concurrent.TimeUnit.MILLISECONDS)
         new TimerTask {
             def cancel() = {
                 javaFuture.cancel(true)
@@ -66,7 +66,7 @@ class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
                 }.future)
             }
         }
-        executor.schedule(r, Time.now.until(when).inMilliseconds(), java.util.concurrent.TimeUnit.MILLISECONDS)
+        executor.schedule(r, Time.now.until(when).inMilliseconds, java.util.concurrent.TimeUnit.MILLISECONDS)
         Future(p.future)
     }
 

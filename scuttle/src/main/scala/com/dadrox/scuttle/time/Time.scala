@@ -8,13 +8,13 @@ case class Time(milliseconds: Long) extends TimeInstance[Time] {
     import Time._
 
     override val ops = Time
-    override def inMilliseconds() = milliseconds
+    override def inMilliseconds = milliseconds
 
     override lazy val toString = defaultFormat.format(this)
 }
 
 trait TimeSource extends DurationSource[Time] {
-    def now() = fromMilliseconds(System.currentTimeMillis())
+    def now = fromMilliseconds(System.currentTimeMillis)
 
     val Epoch = new Time(0)
     val epoch = Epoch
@@ -23,7 +23,7 @@ trait TimeSource extends DurationSource[Time] {
     val Min = new Time(MinMilliseconds)
     def apply(ms: Long) = new Time(ms)
 
-    def fromDate(date: java.util.Date): Time = fromMilliseconds(date.getTime())
+    def fromDate(date: java.util.Date): Time = fromMilliseconds(date.getTime)
 
     def parse(pattern: String, date: String): Option[Time] = {
         try Some(new TimeFormat(pattern).parse(date))
@@ -38,7 +38,7 @@ trait TimeSource extends DurationSource[Time] {
 }
 
 trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
-    def toDate(): java.util.Date = new java.util.Date(inMilliseconds)
+    def toDate: java.util.Date = new java.util.Date(inMilliseconds)
 
     /** Formats the Time to UTC
      */
@@ -54,11 +54,11 @@ trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
 
     /** Midnight leading into the day. The beginning of the day. 00:00
      */
-    def midnight0000() = floor(Duration.fromDays(1))
+    def midnight0000 = floor(Duration.fromDays(1))
 
     /** Midnight at the end of the day. Techincally the beginning of the next day.
      */
-    def midnight2400() = floor(Duration.fromDays(1)) + Duration.fromDays(1)
+    def midnight2400 = floor(Duration.fromDays(1)) + Duration.fromDays(1)
 }
 
 object ljkakafsh extends App {
@@ -106,9 +106,9 @@ class FakeTimeInstance extends TimeSource {
     import java.util.concurrent.atomic.AtomicLong
 
     // TODO ThreadLocal?
-    val current = new AtomicLong(System.currentTimeMillis())
+    val current = new AtomicLong(System.currentTimeMillis)
 
-    override def now() = Time.fromMilliseconds(current.get)
+    override def now = Time.fromMilliseconds(current.get)
 
     def set(now: Time): FakeTimeInstance = {
         set(now.milliseconds)

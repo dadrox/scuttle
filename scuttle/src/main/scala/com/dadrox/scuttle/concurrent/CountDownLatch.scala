@@ -7,7 +7,7 @@ class CountDownLatch(initialCount: Int) {
     private val latch = new java.util.concurrent.CountDownLatch(initialCount)
 
     def await(): Unit = latch.await()
-    def await(duration: Duration): Boolean = latch.await(duration.inMilliseconds(), JTimeUnit.MILLISECONDS)
+    def await(duration: Duration): Boolean = latch.await(duration.inMilliseconds, JTimeUnit.MILLISECONDS)
     def countDown() = latch.countDown()
     def count(): Long = latch.getCount()
 }

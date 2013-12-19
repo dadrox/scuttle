@@ -7,5 +7,5 @@ object conversions {
     implicit def timeToJavaDate(time: Time): java.util.Date = time.toDate
 
     implicit def scalaDurationtoScuttle(duration: ScalaDuration): Duration = Duration.fromMilliseconds(duration.toMillis)
-    implicit def scuttleDurationToScala(duration: Duration): ScalaDuration = ScalaDuration(duration.inMilliseconds(), scala.concurrent.duration.MILLISECONDS)
+    implicit def scuttleDurationToScala(duration: Duration): ScalaDuration = ScalaDuration(duration.inMilliseconds, scala.concurrent.duration.MILLISECONDS)
 }

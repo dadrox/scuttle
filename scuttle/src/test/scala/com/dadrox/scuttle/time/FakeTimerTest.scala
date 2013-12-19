@@ -22,7 +22,6 @@ class FakeTimerTest extends Fictus {
     def fn = {
         svc.fired()
 
-        // REMOVE
 println("FIRED!")
 
         3
@@ -64,7 +63,7 @@ println("FIRED!")
             unit.tick()
             time + 33.minutes
 
-            println(time.now())
+            println(time.now)
 
             unit.tick()
             unit.tick()

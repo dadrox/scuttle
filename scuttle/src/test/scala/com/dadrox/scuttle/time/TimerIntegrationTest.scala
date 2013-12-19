@@ -24,7 +24,7 @@ class TimerIntegrationTest extends Fictus {
         val timer = new PooledTimer(name = "TEST")
         try {
             fn(timer)
-            Thread.sleep(sleepFor.inMilliseconds())
+            Thread.sleep(sleepFor.inMilliseconds)
             println(s"$name DONE @ ${Time.now}")
         } finally timer.stop
     }

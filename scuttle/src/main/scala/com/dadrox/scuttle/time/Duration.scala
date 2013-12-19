@@ -21,7 +21,7 @@ object Duration extends DurationSource[Duration] {
 private[time] case object Infinity extends Duration {
     def milliseconds = ops.MaxMilliseconds
 
-    override def abs(): Duration = this
+    override def abs: Duration = this
     override def unary_-(): Duration = NegativeInfinity
     override def *(scalar: Long): Duration = if(scalar < 0) NegativeInfinity else this
     override def /(scalar: Long): Duration = if(scalar < 0) NegativeInfinity else this
@@ -37,7 +37,7 @@ private[time] case object Infinity extends Duration {
 private[time] case object NegativeInfinity extends Duration {
     def milliseconds = ops.MinMilliseconds
 
-    override def abs(): Duration = Infinity
+    override def abs: Duration = Infinity
     override def unary_-(): Duration = Infinity
     override def *(scalar: Long): Duration = if(scalar < 0) Infinity else this
     override def /(scalar: Long): Duration = if(scalar < 0) Infinity else this
@@ -53,7 +53,7 @@ private[time] case object NegativeInfinity extends Duration {
 trait Duration extends DurationInstance[Duration] {
     override val ops = Duration
 
-    def abs(): Duration = if (milliseconds < 0) -this else ops(inMilliseconds)
+    def abs: Duration = if (milliseconds < 0) -this else ops(inMilliseconds)
     def unary_-(): Duration = ops(-inMilliseconds)
     def /(scalar: Long): Duration = ops(inMilliseconds / scalar)
     def %(scalar: Long): Duration = ops(inMilliseconds % scalar)
@@ -126,17 +126,17 @@ trait DurationInstance[A <: DurationInstance[A]] extends Ordered[A] {
     import Duration._
     protected def ops: DurationSource[A]
 
-    def milliseconds(): Long // abstract
+    def milliseconds: Long // abstract
 
-    def inMilliseconds() = milliseconds
-    def inMillis(): Long = inMilliseconds
-    def inMs(): Long = inMilliseconds
+    def inMilliseconds = milliseconds
+    def inMillis: Long = inMilliseconds
+    def inMs: Long = inMilliseconds
 
-    def inSeconds(): Int = (inMilliseconds / Millis.perSecond).toInt
-    def inMinutes(): Int = (inMilliseconds / Millis.perMinute).toInt
-    def inHours(): Int = (inMilliseconds / Millis.perHour).toInt
-    def inDays(): Int = (inMilliseconds / Millis.perDay).toInt
-    def inWeeks(): Int = (inMilliseconds / Millis.perWeek).toInt
+    def inSeconds: Int = (inMilliseconds / Millis.perSecond).toInt
+    def inMinutes: Int = (inMilliseconds / Millis.perMinute).toInt
+    def inHours: Int = (inMilliseconds / Millis.perHour).toInt
+    def inDays: Int = (inMilliseconds / Millis.perDay).toInt
+    def inWeeks: Int = (inMilliseconds / Millis.perWeek).toInt
 
     def +(other: Duration): A = ops.fromMilliseconds(inMilliseconds + other.inMilliseconds)
     def -(other: Duration): A = this + -other

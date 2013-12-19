@@ -258,9 +258,9 @@ class ResultTest extends Fictus {
 
     @Test
     def result_of_void {
-        val xx: Result[Void] = Success(Void())
+        val xx: Result[Void] = Success(Void)
 
-        xx.success() mustEqual Some(Void())
+        xx.success() mustEqual Some(Void)
     }
 
     implicit def convertToFailure(i: Int) = rawFail
