@@ -99,26 +99,14 @@ class FakeTimer(timeSource: TimeSource) extends Timer {
     case class PeriodicTask(runAt: Time, period: Duration, fn: () => Unit) extends Task
 
     def tick() {
-
-        println(s"tick NOW ${timeSource.now} $tasks")
-
         val ready = tasks.filter(_.runAt <= timeSource.now)
-
-        println(s"READY $ready")
-
-
         ready.foreach {
             case task @ OneShotTask(_, fn, promise) =>
                 tasks -= task
                 promise.success(Success(fn()))
             case task @ PeriodicTask(_, period, fn) =>
-
-                println(s"BEFORE TASKS $tasks")
-
                 fn()
                 tasks -= task += task.copy(runAt = timeSource.now + period)
-
-                println(s"NEW TASKS $tasks")
         }
     }
 
