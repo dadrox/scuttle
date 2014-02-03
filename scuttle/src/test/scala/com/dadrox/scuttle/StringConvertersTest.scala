@@ -1,7 +1,6 @@
 package com.dadrox.scuttle
 
 import org.fictus.Fictus
-import com.dadrox.scuttle.string.converters
 import com.dadrox.scuttle.string._
 
 class StringConvertersTest extends Fictus {

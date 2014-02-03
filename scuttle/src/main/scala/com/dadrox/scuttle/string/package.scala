@@ -36,9 +36,8 @@ package object string {
     private lazy val Integer = """([+-])?(\d+)""".r
     private lazy val FloatingPoint = """([-+]?\d*\.?\d+)([eE][-+]?\d+)?""".r
 
-    /** Provides various functions to convert a String to something else safely (i.e. Options, not exceptions)
-     */
-    implicit class converters(s: String) {
+    /** Provides various functions to convert a String to something else safely (i.e. Options, not exceptions) */
+    implicit class StringToSomethingElseConverters(s: String) {
 
         def notNull: Option[String] = Option(s)
 
