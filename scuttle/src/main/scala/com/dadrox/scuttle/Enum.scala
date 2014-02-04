@@ -3,10 +3,9 @@ package com.dadrox.scuttle
 trait Enum {
     import java.util.concurrent.atomic.AtomicReference
 
-    type EnumVal <: Value //This is a type that needs to be found in the implementing class
+    type EnumVal <: Value with Product //This is a type that needs to be found in the implementing class
 
-    /** May be overridden, which affects toString: Vector(NewName(name1)) rather than Vector(EnumVal(name1))
-     */
+    /** May be overridden, which affects toString: Vector(NewName(name1)) rather than Vector(EnumVal(name1)) */
     def name(): String = "EnumVal"
 
     def withName(name: String): Option[EnumVal] = values.find(_.name == name)
@@ -24,8 +23,7 @@ trait Enum {
         else addEnumVal(newVal)
     }
 
-    /** @return all the EnumVals that exist for this type
-     */
+    /** @return all the EnumVals that exist for this type */
     def values: Vector[EnumVal] = _values.get
 
     //This is the class that we need to extend our EnumVal type with, it does the book-keeping for us
@@ -35,10 +33,7 @@ trait Enum {
 
         private final val ordinal = addEnumVal(this) //Adds the EnumVal and returns the ordinal
 
-        override def toString = this match {
-            case product: Product => scala.runtime.ScalaRunTime._toString(this.asInstanceOf[Product]).replace("EnumVal", Enum.this.name)
-            case _                => s"${Enum.this.name}.$name"
-        }
+        override def toString = s"${Enum.this.name}($name)"
 
         override def equals(other: Any) = other match {
             case any: Value => this.name == any.name

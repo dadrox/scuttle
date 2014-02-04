@@ -22,7 +22,7 @@ object HttpError extends Enum {
     val BadRequest = EnumVal("BadRequest", 400, "Bad Request", HttpErrorClass.ClientError)
     val Forbidden = EnumVal("Forbidden", 403, "Forbidden", HttpErrorClass.ClientError)
     val NotFound = EnumVal("NotFound", 404, "Not Found", HttpErrorClass.ClientError)
-    val Teapot = EnumVal("Teapot", 418, "I'm a teapot", HttpErrorClass.ClientError) // RFC 2324
+    val Teapot = EnumVal("I'm a teapot", 418, "I'm a teapot", HttpErrorClass.ClientError) // RFC 2324
 
     val InternalServerError = EnumVal("InternalServerError", 500, "Internal Server Error", HttpErrorClass.ServerError)
     val GatewayTimeout = EnumVal("GatewayTimeout", 504, "Gateway Timeout", HttpErrorClass.ServerError)
@@ -51,6 +51,6 @@ class StaticDataEnumTest extends Fictus {
 
     @Test
     def toString_is_stable {
-        HttpError.Teapot.toString mustEqual "EnumVal(Teapot,418,I'm a teapot,EnumVal(ClientError,400,Client Error))"
+        HttpError.Teapot.toString mustEqual "EnumVal(I'm a teapot)"
     }
 }
