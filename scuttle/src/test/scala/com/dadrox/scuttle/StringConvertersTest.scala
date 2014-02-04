@@ -1,9 +1,8 @@
 package com.dadrox.scuttle
 
-import org.fictus.Fictus
 import com.dadrox.scuttle.string._
 
-class StringConvertersTest extends Fictus {
+class StringConvertersTest extends org.fictus.Fictus {
 
     val nullString: String = null
 
@@ -305,5 +304,41 @@ class StringConvertersTest extends Fictus {
         "a" mustNotMatch { case IsDouble(i) => }
         BigDecimal(Double.MaxValue).*(2).toString mustNotMatch { case IsDouble(_) => }
         BigDecimal(Double.MaxValue).*(-2).toString mustNotMatch { case IsDouble(_) => }
+    }
+
+    @Test
+    def leftPad {
+        nullString.pad.left(3, 'A') mustEqual "AAA"
+        "".pad.left(3, 'A') mustEqual "AAA"
+        "1".pad.left(3, 'A') mustEqual "AA1"
+        "1234".pad.left(3, 'A') mustEqual "1234"
+        "abc".pad.left(6, 'A') mustEqual "AAAabc"
+    }
+
+    @Test
+    def rightPad {
+        nullString.pad.right(3, 'A') mustEqual "AAA"
+        "".pad.right(3, 'A') mustEqual "AAA"
+        "1".pad.right(3, 'A') mustEqual "1AA"
+        "1234".pad.right(3, 'A') mustEqual "1234"
+        "abc".pad.right(6, 'A') mustEqual "abcAAA"
+    }
+
+    @Test
+    def zeroLeftPad {
+        nullString.pad.left(3, 'A') mustEqual "AAA"
+        "".pad.left(3, 'A') mustEqual "AAA"
+        "1".pad.left(3, 'A') mustEqual "AA1"
+        "1234".pad.left(3, 'A') mustEqual "1234"
+        "abc".pad.left(6, 'A') mustEqual "AAAabc"
+    }
+
+    @Test
+    def zeroRightPad {
+        nullString.pad.right.zero(3) mustEqual "000"
+        "".pad.right.zero(3) mustEqual "000"
+        "1".pad.right.zero(3) mustEqual "100"
+        "1234".pad.right.zero(3) mustEqual "1234"
+        "abc".pad.right.zero(6) mustEqual "abc000"
     }
 }

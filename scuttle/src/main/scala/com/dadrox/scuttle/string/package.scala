@@ -95,5 +95,19 @@ package object string {
             case b if (falses.exists(_.equalsIgnoreCase(b))) => Some(false)
             case _                                           => None
         }
+
+        private def nullSafe = if (s == null) "" else s
+        private def padIt(width: Int, padChar: Char) = padChar.toString * (width - nullSafe.length())
+
+        object pad {
+            object left {
+                def apply(width: Int, padChar: Char): String = padIt(width, padChar) + nullSafe
+                def zero(width: Int): String = apply(width, '0')
+            }
+            object right {
+                def apply(width: Int, padChar: Char): String = nullSafe + padIt(width, padChar)
+                def zero(width: Int): String = apply(width, '0')
+            }
+        }
     }
 }
