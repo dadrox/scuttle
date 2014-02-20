@@ -7,49 +7,47 @@ import scala.concurrent.{ Await, Future => ScalaFuture, Promise, TimeoutExceptio
 import scala.util.{ Success => ScalaSuccess, Failure => ScalaFailure }
 import scala.util.control.NonFatal
 
-object AwaitFailReason extends Enum {
-    sealed case class EnumVal private[AwaitFailReason] (name: String) extends Value with Failure.Reason
-
-    val Interrupted = EnumVal("Interrupted")
-    val IllegalArgument = EnumVal("IllegalArgument")
-    val Unknown = EnumVal("Unknown")
+sealed abstract class AwaitFailReason(override val name: String) extends Failure.Reason
+object AwaitFailReason {
+    case object Interrupted extends AwaitFailReason("InterruptedException")
+    case object IllegalArgument extends AwaitFailReason("IllegalArgumentException")
+    case object Unknown extends AwaitFailReason("UnknownException")
 }
-case class AwaitFailure(reason: AwaitFailReason.EnumVal, cause: Option[Throwable] = None) extends Failure.Detail {
-    val message: String = reason.name
+case class AwaitFailure(reason: AwaitFailReason, cause: Option[Throwable] = None) extends Failure.Detail {
+    val message: String = s"Await failure: $reason"
 }
 
-object TimeoutReason extends Enum {
-    sealed case class EnumVal private[TimeoutReason] (name: String) extends Value with Failure.Reason
-
-    val Await = EnumVal("Await")
-    val Timer = EnumVal("Timer")
+sealed abstract class TimeoutReason(override val name: String) extends Failure.Reason
+object TimeoutReason {
+    case object Await extends TimeoutReason("Await")
+    case object Timer extends TimeoutReason("Underlying Future")
 }
-case class TimeoutFailure(reason: TimeoutReason.EnumVal, duration: Option[Duration], cause: Option[Throwable] = None) extends Failure.Detail {
-    val message: String = reason.name
+case class TimeoutFailure(reason: TimeoutReason, duration: Option[Duration], cause: Option[Throwable] = None) extends Failure.Detail {
+    val message: String = s"$reason timeout, duration=$duration"
 }
 
 trait Future[+T] {
 
     def underlying: ScalaFuture[Result[T]]
 
-    final def flatMap[U](f: T => Future[U])(implicit executor: ExecutionContext): Future[U] = ConcreteFuture {
+    final def flatMap[U](f: T => Future[U])(implicit ec: ExecutionContext): Future[U] = ConcreteFuture {
         underlying.flatMap {
             case Success(obj)     => f(obj).underlying
             case failure: Failure => ScalaFuture.successful(failure)
         }
     }
 
-    final def map[U](f: T => U)(implicit executor: ExecutionContext): Future[U] = ConcreteFuture(underlying.map(_.map(f)))
+    final def map[U](f: T => U)(implicit ec: ExecutionContext): Future[U] = ConcreteFuture(underlying.map(_.map(f)))
 
-    final def foreach(fn: T => Unit)(implicit executor: ExecutionContext) = onSuccess(fn)
+    final def foreach(fn: T => Unit)(implicit ec: ExecutionContext) = onSuccess(fn)
 
-    final def filter(predicate: T => Boolean)(implicit executor: ExecutionContext): Future[T] = flatMap { r =>
+    final def filter(predicate: T => Boolean)(implicit ec: ExecutionContext): Future[T] = flatMap { r =>
         if (predicate(r)) FutureSuccess(r) else FutureFail(Failure.FilterPredicateFalse(r))
     }
 
-    final def withFilter(predicate: T => Boolean)(implicit executor: ExecutionContext): Future[T] = filter(predicate)
+    final def withFilter(predicate: T => Boolean)(implicit ec: ExecutionContext): Future[T] = filter(predicate)
 
-    final def onSuccess[U](fn: T => U)(implicit executor: ExecutionContext): Future[T] = {
+    final def onSuccess[U](fn: T => U)(implicit ec: ExecutionContext): Future[T] = {
         underlying.onSuccess {
             case Success(s) => fn(s)
             case _          =>
@@ -57,7 +55,7 @@ trait Future[+T] {
         this
     }
 
-    final def onComplete[U](fn: Result[T] => U)(implicit executor: ExecutionContext): Future[T] = {
+    final def onComplete[U](fn: Result[T] => U)(implicit ec: ExecutionContext): Future[T] = {
         underlying.onComplete {
             case ScalaSuccess(s) => fn(s)
             case _               =>
@@ -65,7 +63,7 @@ trait Future[+T] {
         this
     }
 
-    final def onFailure[U](fn: Failure.Detail => U)(implicit executor: ExecutionContext): Future[T] = {
+    final def onFailure[U](fn: Failure.Detail => U)(implicit ec: ExecutionContext): Future[T] = {
         underlying.onSuccess {
             case Failure(f) => fn(f)
             case _          =>
@@ -73,7 +71,7 @@ trait Future[+T] {
         this
     }
 
-    final def rescue[U >: T](rescueFail: PartialFunction[Failure, U])(implicit executor: ExecutionContext): Future[U] = {
+    final def rescue[U >: T](rescueFail: PartialFunction[Failure, U])(implicit ec: ExecutionContext): Future[U] = {
         ConcreteFuture(underlying.map {
             case f: Failure if (rescueFail.isDefinedAt(f)) => Success(rescueFail(f))
             case f: Failure                                => f
@@ -81,7 +79,7 @@ trait Future[+T] {
         })
     }
 
-    final def rescueFlat[U >: T](rescueFail: PartialFunction[Failure, Future[U]])(implicit executor: ExecutionContext): Future[U] = {
+    final def rescueFlat[U >: T](rescueFail: PartialFunction[Failure, Future[U]])(implicit ec: ExecutionContext): Future[U] = {
         ConcreteFuture(underlying.flatMap {
             case f: Failure if (rescueFail.isDefinedAt(f)) => rescueFail(f).underlying
             case other                                     => ScalaFuture.successful(other)
@@ -147,7 +145,7 @@ object Future {
         }
     }
 
-    def apply[T](obj: => Result[T])(implicit executor: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(obj))
+    def apply[T](obj: => Result[T])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(obj))
     def apply[T](underlying: ScalaFuture[Result[T]]): Future[T] = ConcreteFuture(underlying)
     def success[T](obj: T): Future[T] = FutureSuccess(obj)
     def fail(failure: Failure.Detail)(implicit callInfo: CallInfo = CallInfo.callSite): Future[Nothing] = FutureFail(failure)

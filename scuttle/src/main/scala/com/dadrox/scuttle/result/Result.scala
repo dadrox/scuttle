@@ -118,6 +118,7 @@ final case class Success[+S](value: S) extends Result[S] {
 object Failure {
     trait Reason {
         def name(): String
+        override def toString = name
     }
 
     trait Detail {
@@ -126,10 +127,10 @@ object Failure {
         def cause(): Option[Throwable]
     }
 
+    case class Concrete(reason: Reason, message: String, cause: Option[Throwable] = None) extends Failure.Detail
+
     case class FilterPredicateFalse(what: Any) extends Failure.Detail {
-        val reason = new Reason {
-            val name = "FilterPredicateFalse"
-        }
+        val reason = new Reason { val name = "FilterPredicateFalse" }
         val message = s"filter predicate produced false for $what"
         val cause = None
     }
