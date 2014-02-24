@@ -1,22 +1,17 @@
 package com.dadrox.scuttle.time
 
 import com.dadrox.scuttle.result._
+import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.Executors
+import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Promise
 import scala.util.control.NonFatal
-import scala.collection.mutable.ArrayBuffer
-
-case class FailedScheduledTask(cause: Option[Throwable]) extends Failure.Detail {
-    val reason = new Failure.Reason {
-        val name = "FailedScheduledTask"
-    }
-    val message = "Unexpected exception on scheduled task"
-    override val toString = s"FailedScheduledTask($message, $cause)"
-}
 
 object Timer {
+
+    case object FailedScheduledTask extends Failure.Reason
+
     def apply(threads: Int = 2, name: String = "Timer", daemonThreads: Boolean = false) =
         new PooledTimer(threads, name, daemonThreads)
 
@@ -61,7 +56,7 @@ class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
                 p.completeWith(Promise.successful {
                     try Success(fn)
                     catch {
-                        case NonFatal(e) => Failure(FailedScheduledTask(Some(e)))
+                        case NonFatal(e) => Failure(Timer.FailedScheduledTask, "Unexpected exception on scheduled task", Some(e))
                     }
                 }.future)
             }

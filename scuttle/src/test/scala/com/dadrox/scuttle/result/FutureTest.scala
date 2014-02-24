@@ -3,18 +3,9 @@ package com.dadrox.scuttle.result
 import com.dadrox.scuttle.time._
 import org.fictus.Fictus
 
-case class FailMsg(message: String) extends Failure.Detail {
-    val reason = new Failure.Reason {
-        val name = "FailReason"
-    }
-    val cause: Option[Exception] = None
-}
-case class AnotherFailMsg(message: String) extends Failure.Detail {
-    val reason = new Failure.Reason {
-        val name = "FailReason"
-    }
-    val cause: Option[Exception] = None
-}
+sealed trait FailureDetail
+case object FailMsg extends Failure.Reason with FailureDetail
+case object AnotherFailMsg extends Failure.Reason with FailureDetail
 
 class FutureTest extends Fictus {
 
@@ -23,13 +14,13 @@ class FutureTest extends Fictus {
 
     trait Service {
         def called(i: Int)
-        def called(detail: Failure.Detail)
+        def called(detail: FailureDetail)
         def called(result: Result[_])
     }
     val service = mock[Service]
 
-    val failable = FailMsg("fail")
-    val anotherFailable = AnotherFailMsg("failable")
+    val failable = Failure(FailMsg, "fail")
+    val anotherFailable = Failure(AnotherFailMsg, "failable")
 
     @Test
     def forComprehension_success {
@@ -48,7 +39,7 @@ class FutureTest extends Fictus {
             four <- FutureSuccess(4)
         } yield three + four
 
-        seven.await() mustEqual Failure(failable)
+        seven.await() mustEqual failable
     }
 
     @Test
@@ -60,7 +51,7 @@ class FutureTest extends Fictus {
         } flatMap { _ =>
             FutureFail(failable)
         }
-        seven.await() mustEqual Failure(failable)
+        seven.await() mustEqual failable
     }
 
     @Test
@@ -79,10 +70,10 @@ class FutureTest extends Fictus {
     @Test
     def filter {
         (FutureSuccess(3) filter (3==)).await mustEqual Success(3)
-        (FutureSuccess(3) filter (2==)).await mustMatch { case Failure(Failure.FilterPredicateFalse(3)) => }
+        (FutureSuccess(3) filter (2==)).await mustMatch { case Failure(Failure.FilterPredicateFalse, _, _) => }
 
         val failedFuture: Future[Int] = Future.fail(failable)
-        (failedFuture filter (3==)).await mustEqual Failure(failable)
+        (failedFuture filter (3==)).await mustEqual failable
     }
 
     @Test
@@ -99,7 +90,7 @@ class FutureTest extends Fictus {
             Thread.sleep(50)
             Success(7)
         }.await(timeout) mustMatch {
-            case Failure(TimeoutFailure(_, Some(`timeout`), _)) =>
+            case Failure(FutureTimeout.Await, _, _) =>
         }
     }
 
@@ -110,7 +101,7 @@ class FutureTest extends Fictus {
 
     @Test
     def futureFail {
-        FutureSuccess(3).flatMap(_ => FutureFail(failable)).await mustEqual Failure(failable)
+        FutureSuccess(3).flatMap(_ => FutureFail(failable)).await mustEqual failable
     }
 
     @Test
@@ -141,7 +132,7 @@ class FutureTest extends Fictus {
             Success(7)
         }
         future.within(timeout).await() mustMatch {
-            case Failure(TimeoutFailure(TimeoutReason.Timer, Some(`timeout`), _)) =>
+            case Failure(FutureTimeout.Underlying, _, _) =>
         }
     }
 
@@ -172,14 +163,14 @@ class FutureTest extends Fictus {
     def rescue_notDefinedAt {
         Future.fail(failable).rescue {
             case `anotherFailable` => "shouldMiss"
-        }.await() mustEqual Failure(failable)
+        }.await() mustEqual failable
     }
 
     @Test
     def rescueFlat_failureToFailure {
         Future.fail(failable).rescueFlat {
             case failure => Future.fail(anotherFailable)
-        }.await() mustEqual Failure(anotherFailable)
+        }.await() mustEqual anotherFailable
     }
 
     @Test
@@ -202,7 +193,7 @@ class FutureTest extends Fictus {
     def rescueFlat_notDefinedAt {
         Future.fail(failable).rescueFlat {
             case `anotherFailable` => Future.fail(null)
-        }.await() mustEqual Failure(failable)
+        }.await() mustEqual failable
     }
 
     @Test
@@ -214,12 +205,12 @@ class FutureTest extends Fictus {
     @Test
     def collect_fail {
         val fs = Vector(FutureSuccess(3), FutureFail(failable))
-        Future.collect(fs).await mustEqual Failure(failable)
+        Future.collect(fs).await mustEqual failable
     }
 
     @Test
     def callInfo {
-        Future.fail(failable).await().toString mustContain ("callInfo") mustContain ("FutureTest")
-        FutureFail(failable).await().toString mustContain ("callInfo") mustContain ("FutureTest")
+        Future.fail(failable).await().toString mustContain ("FutureTest")
+        FutureFail(failable).await().toString mustContain ("FutureTest")
     }
 }

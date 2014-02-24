@@ -1,6 +1,7 @@
 package com.dadrox.scuttle.result
 
 import com.dadrox.scuttle.CallInfo
+import com.dadrox.scuttle.time.Duration
 
 object Result {
     /** If the Results are all Successes, converts a seq of Result into a Result of seq.
@@ -97,7 +98,7 @@ sealed abstract class Result[+S] { self =>
     }
 
     def filter(f: S => Boolean): Result[S] = this match {
-        case Success(s) => if (f(s)) this else Failure(Failure.FilterPredicateFalse(s))
+        case Success(s) => if (f(s)) this else Failure(Failure.FilterPredicateFalse, s"Filter failed on $s")
         case failure    => failure
     }
 
@@ -116,27 +117,14 @@ final case class Success[+S](value: S) extends Result[S] {
 }
 
 object Failure {
-    trait Reason {
-        def name(): String
-        override def toString = name
-    }
+    trait Reason
+    trait Timeout extends Reason
+    case object NoReason extends Reason
 
-    trait Detail {
-        def reason(): Reason
-        def message(): String
-        def cause(): Option[Throwable]
-    }
-
-    case class Concrete(reason: Reason, message: String, cause: Option[Throwable] = None) extends Failure.Detail
-
-    case class FilterPredicateFalse(what: Any) extends Failure.Detail {
-        val reason = new Reason { val name = "FilterPredicateFalse" }
-        val message = s"filter predicate produced false for $what"
-        val cause = None
-    }
+    case object FilterPredicateFalse extends Reason
 }
 
-final case class Failure(detail: Failure.Detail)(implicit val callInfo: CallInfo = CallInfo.callSite) extends Result[Nothing] {
+final case class Failure(reason: Failure.Reason, message: String, cause: Option[Throwable] = None)(implicit val callInfo: CallInfo = CallInfo.callSite) extends Result[Nothing] {
     override val name = "Failure"
-    override lazy val toString = s"Failure($detail): $callInfo"
+    override lazy val toString = s"Failure($reason, $message, $cause): $callInfo"
 }

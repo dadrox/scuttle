@@ -4,16 +4,12 @@ import org.fictus.Fictus
 
 object MatchFail {
     def unapply(f: Result[_]) = f match {
-        case Failure(FailureData(s, d, t)) => Some((s, d, t))
-        case _                             => None
+        case Failure(s, d, t) => Some((s, d, t))
+        case _                => None
     }
 }
 
-case class FailureData(status: Int, message: String, cause: Option[Throwable] = None) extends Failure.Detail {
-    val reason = new Failure.Reason {
-        val name = status.toString
-    }
-}
+private[result] case class Status(code: Int) extends Failure.Reason
 
 class ResultTest extends Fictus {
 
@@ -23,13 +19,12 @@ class ResultTest extends Fictus {
 
     val io = mock[Io]
 
-    val failureData = FailureData(404, "")
-    val rawFail = Failure(failureData)
+    val rawFail = Failure(Status(404), "")
     val failed: Result[Int] = rawFail
 
     @Test
     def for_first_fail_is_the_result {
-        val other: Result[Int] = Failure(FailureData(503, "2"))
+        val other: Result[Int] = Failure(Status(503), "2")
         val result = for {
             a <- failed
             b <- other
@@ -72,8 +67,8 @@ class ResultTest extends Fictus {
         }
 
         failed match {
-            case Failure(FailureData(_, _, _)) =>
-            case _                             => fail("Should have matched")
+            case Failure(_, _, _) =>
+            case _                => fail("Should have matched")
         }
 
         failed match {
@@ -135,15 +130,15 @@ class ResultTest extends Fictus {
     @Test
     def rescue_Fail {
         failed.rescue {
-            case Failure(`failureData`) => 2
+            case `rawFail` => 2
         } mustEqual Success(2)
 
         failed.rescue {
-            case Failure(`failureData`) => "win"
+            case `rawFail` => "win"
         } mustEqual Success("win")
 
         failed.rescue {
-            case Failure(FailureData(-1, "won't match", _)) => 2
+            case Failure(Status(-1), "won't match", _) => 2
         } mustEqual failed
     }
 
@@ -157,11 +152,11 @@ class ResultTest extends Fictus {
     @Test
     def rescueFlat_Fail {
         failed.rescueFlat {
-            case Failure(`failureData`) => Success(2)
+            case `rawFail` => Success(2)
         } mustEqual Success(2)
 
         failed.rescueFlat {
-            case Failure(FailureData(-1, "won't match", _)) => Success(2)
+            case Failure(Status(-1), "won't match", _) => Success(2)
         } mustEqual failed
     }
 
@@ -269,7 +264,7 @@ class ResultTest extends Fictus {
     def filter {
         Success(1) filter (1==) mustEqual Success(1)
         Success(1) filter (2==) mustMatch {
-            case Failure(Failure.FilterPredicateFalse(_)) =>
+            case Failure(Failure.FilterPredicateFalse, _, _) =>
         }
         failed filter (2==) mustEqual failed
         rawFail filter (_ => false) mustEqual rawFail
@@ -294,15 +289,15 @@ class ResultTest extends Fictus {
     @Test
     def withFilter_map {
         Success(1).withFilter(_ => true).map(1+) mustEqual Success(2)
-        failed.withFilter(_ => true).map(1+) mustMatch { case Failure(_) => }
-        rawFail.withFilter(_ => true).map(_ => 1) mustMatch { case Failure(_) => }
+        failed.withFilter(_ => true).map(1+) mustMatch { case Failure(_, _, _) => }
+        rawFail.withFilter(_ => true).map(_ => 1) mustMatch { case Failure(_, _, _) => }
     }
 
     @Test
     def withFilter_flatMap {
         Success(1).withFilter(_ => true) flatMap (v => Success(v + 2)) mustEqual Success(3)
-        failed.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_) => }
-        rawFail.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_) => }
+        failed.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_, _, _) => }
+        rawFail.withFilter(_ => true) flatMap (_ => Success(2)) mustMatch { case Failure(_, _, _) => }
     }
 
     @Test
@@ -320,6 +315,6 @@ class ResultTest extends Fictus {
 
     @Test
     def callInfo {
-        Failure(failureData).toString mustContain ("callInfo") mustContain ("ResultTest")
+        rawFail.toString mustContain ("ResultTest")
     }
 }

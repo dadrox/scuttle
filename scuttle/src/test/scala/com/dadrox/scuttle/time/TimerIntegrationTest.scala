@@ -129,7 +129,7 @@ class TimerIntegrationTest extends Fictus {
             future.onSuccess(_ => svc.onSuccess())
                 .onFailure(_ => svc.onFailure())
                 .onComplete(_ => svc.onComplete())
-                .await mustMatch { case Failure(FailedScheduledTask(_)) => }
+                .await mustMatch { case Failure(Timer.FailedScheduledTask, _, _) => }
         }
     }
 }
