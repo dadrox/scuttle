@@ -55,6 +55,11 @@ class FutureTest extends Fictus {
     }
 
     @Test
+    def flatten {
+        Future.success(Future.success((3))).flatten.await mustEqual Success(3)
+    }
+
+    @Test
     def foreach_success {
         val future: Future[Int] = FutureFail(failable)
         test(future foreach service.called)
@@ -204,8 +209,20 @@ class FutureTest extends Fictus {
 
     @Test
     def collect_fail {
-        val fs = Vector(FutureSuccess(3), FutureFail(failable))
+        val fs: Seq[Future[Int]] = Vector(FutureSuccess(3), FutureFail(failable))
         Future.collect(fs).await mustEqual failable
+    }
+
+    @Test
+    def join_success {
+        val fs = Vector(FutureSuccess(3), FutureSuccess(4))
+        Future.join(fs).await mustEqual Success(Void)
+    }
+
+    @Test
+    def join_fail {
+        val fs: Seq[Future[Int]] = Vector(FutureSuccess(3), FutureFail(failable))
+        Future.join(fs).await mustEqual failable
     }
 
     @Test

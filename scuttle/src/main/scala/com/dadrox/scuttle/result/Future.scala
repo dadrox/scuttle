@@ -38,6 +38,8 @@ trait Future[+T] {
         }
     }
 
+    final def flatten[B](implicit ev: T <:< Future[B], ec: ExecutionContext): Future[B] = flatMap[B] { x => x }
+
     final def map[U](f: T => U)(implicit ec: ExecutionContext): Future[U] = ConcreteFuture(underlying.map(_.map(f)))
 
     final def foreach(fn: T => Unit)(implicit ec: ExecutionContext) = onSuccess(fn)
@@ -109,7 +111,7 @@ object Future {
         case NonFatal(e)                 => AwaitFailure(AwaitFailure.Unknown, cause = Some(e))
     }
 
-    // TODO collect, join, firstOf (select), etc?
+    // TODO firstOf (select), etc?
 
     def collect[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Seq[A]] = {
         import scala.collection.mutable
@@ -140,6 +142,9 @@ object Future {
         }
     }
 
+    def join[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Void] = collect(fs) map (x => Void)
+
+    def void: Future[Void] = Future.success(Void)
     def apply[T](obj: => Result[T])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(obj))
     def apply[T](underlying: ScalaFuture[Result[T]]): Future[T] = ConcreteFuture(underlying)
     def success[T](obj: T): Future[T] = FutureSuccess(obj)
