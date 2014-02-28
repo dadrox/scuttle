@@ -75,15 +75,22 @@ trait Duration extends DurationInstance[Duration] {
         terse: Boolean = false) = {
         var remainder = math.abs(if (milliseconds == Long.MinValue) milliseconds + 1 else milliseconds)
         val sign = if (milliseconds < 0) "-" else "+"
+
         val sb = new StringBuilder
-        for (
-            u <- TimeUnit.values.flatMap { d => if (d.ms > maxTimeUnit.ms) None else Some(d) }
+
+        def appendString(value: Long, unit: TimeUnit.EnumVal) = {
+            sb.append(sign + value + "." + (if (terse) unit.short else unit.name))
+            remainder -= value * unit.ms
+            if (!terse && (value > 1 || value == 0)) sb.append("s")
+        }
+
+        if (milliseconds == 0) appendString(0, TimeUnit.Millisecond)
+        else for (
+            unit <- TimeUnit.values.flatMap { d => if (d.ms > maxTimeUnit.ms) None else Some(d) }
         ) {
-            val dividend = remainder / u.ms
+            val dividend = remainder / unit.ms
             if (dividend > 0) {
-                sb.append(sign + dividend + "." + (if (terse) u.short else u.name))
-                remainder -= dividend * u.ms
-                if (!terse && dividend > 1) sb.append("s")
+                appendString(dividend, unit)
             }
         }
         sb.toString

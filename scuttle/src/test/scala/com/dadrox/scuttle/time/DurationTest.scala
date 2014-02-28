@@ -68,6 +68,7 @@ class DurationTest extends DurationSourceTestBase(Duration) with org.fictus.Fict
     @Test
     def subtracting {
         6.seconds - 3.seconds mustEqual 3.seconds
+        3.seconds - 3.seconds mustEqual 0.seconds
     }
 
     @Test
@@ -84,6 +85,7 @@ class DurationTest extends DurationSourceTestBase(Duration) with org.fictus.Fict
 
     @Test
     def toStrings_are_decent {
+        0.milliseconds.toString mustEqual "+0.milliseconds"
         -3.milliseconds.toString mustEqual "-3.milliseconds"
         3.milliseconds.toString mustEqual "+3.milliseconds"
         3.seconds.toString mustEqual "+3.seconds"
@@ -100,6 +102,8 @@ class DurationTest extends DurationSourceTestBase(Duration) with org.fictus.Fict
 
         (1.week + 1.day + 1.hour + 1.minute + 1.second + 1.ms).toString(terse = true)
             .mustEqual("+1.w+1.d+1.h+1.m+1.s+1.ms")
+
+        0.milliseconds.toString(terse = true) mustEqual "+0.ms"
 
         Duration.NegativeInfinite.toString mustEqual NegativeInfinity.toString
         Duration.Infinite.toString mustEqual Infinity.toString

@@ -3,6 +3,7 @@ package com.dadrox.scuttle.time
 import com.dadrox.scuttle.result._
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.Promise
@@ -86,8 +87,10 @@ class FakeTimer(timeSource: TimeSource) extends Timer {
     val tasks = ArrayBuffer[Task]()
 
     trait Task extends TimerTask {
+        val canceled = new AtomicBoolean(false)
+        def canceled_? = canceled.get
         def runAt: Time
-        def cancel() {}
+        def cancel() { canceled.set(true) }
     }
 
     case class OneShotTask[A](runAt: Time, fn: () => A, promise: Promise[Result[A]]) extends Task
@@ -98,10 +101,11 @@ class FakeTimer(timeSource: TimeSource) extends Timer {
         ready.foreach {
             case task @ OneShotTask(_, fn, promise) =>
                 tasks -= task
-                promise.success(Success(fn()))
+                if (!task.canceled_?) promise.success(Success(fn()))
             case task @ PeriodicTask(_, period, fn) =>
-                fn()
-                tasks -= task += task.copy(runAt = timeSource.now + period)
+                if (!task.canceled_?) fn()
+                tasks -= task
+                if (!task.canceled_?) tasks += task.copy(runAt = timeSource.now + period)
         }
     }
 
