@@ -9,31 +9,23 @@ class FutureIntegrationTest extends Fictus {
 
     @Test
     def join_success_waits_for_everything {
+        val numberOfFutures = 4
         val start = Time.now
         val count = new AtomicInteger(0)
-        val fs = Vector(
-            Future {
-                Thread.sleep(100)
-                count.incrementAndGet()
-                Success(3)
-            },
-            Future {
-                Thread.sleep(100)
-                count.incrementAndGet()
-                Success(4)
-            },
-            Future {
-                Thread.sleep(100)
-                count.incrementAndGet()
-                Success(5)
-            })
 
+        def newFuture(i: Int) = Future {
+            Thread.sleep(100)
+            count.incrementAndGet()
+            Success(i)
+        }
+
+        val fs = (1 to numberOfFutures).toVector.map(newFuture)
         Future.join(fs).await mustEqual Success(Void)
 
         val time = Time.now.since(start)
-        val timeout = 150.ms
+        val timeout = 200.ms
         if (time > timeout) fail(s"Futures must all finish within $timeout, but finished in $time")
 
-        count.get mustEqual 3
+        count.get mustEqual numberOfFutures
     }
 }
