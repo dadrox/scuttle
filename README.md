@@ -1,5 +1,7 @@
 # Scuttle
 
+[![Build Status](https://travis-ci.org/dadrox/scuttle.png)](https://travis-ci.org/dadrox/scuttle)
+
 A set of useful scala utilities and patterns.
 
 ## Features
