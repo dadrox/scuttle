@@ -226,6 +226,20 @@ class FutureTest extends Fictus {
     }
 
     @Test
+    def failOnNone_fails_on_None {
+        val future: Future[Option[Int]] = Future.success(None)
+        val result = future failOnNone failable
+        result.await mustEqual failable
+    }
+
+    @Test
+    def failOnNone_succeeds_on_Some {
+        val future: Future[Option[Int]] = Future.success(Some(3))
+        val result = future failOnNone failable
+        result.await mustEqual Success(3)
+    }
+
+    @Test
     def callInfo {
         Future.fail(failable).await().toString mustContain ("FutureTest")
         FutureFail(failable).await().toString mustContain ("FutureTest")

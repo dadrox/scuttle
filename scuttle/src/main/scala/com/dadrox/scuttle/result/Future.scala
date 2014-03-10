@@ -104,14 +104,15 @@ trait Future[+T] {
 
 object Future {
 
-    private def handleThrowables(timeout: Option[Duration] = None): PartialFunction[Throwable, Failure] = {
-        case e: InterruptedException     => AwaitFailure(AwaitFailure.Interrupted, cause = Some(e))
-        case e: TimeoutException         => FutureTimeout(FutureTimeout.Await, timeout, Some(e))
-        case e: IllegalArgumentException => AwaitFailure(AwaitFailure.IllegalArgument, cause = Some(e))
-        case NonFatal(e)                 => AwaitFailure(AwaitFailure.Unknown, cause = Some(e))
+    implicit class AugmentedFutureOption[A](future: Future[Option[A]])(implicit ec: ExecutionContext) {
+        def failOnNone(failure: Failure) = future flatMap {
+            case Some(it) => Future.success(it)
+            case None     => failure
+        }
     }
 
     // TODO firstOf (select), etc?
+    // TODO add filter, which only keep successes and disposes of failures
 
     def collect[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Seq[A]] = {
         import scala.collection.mutable
@@ -144,16 +145,25 @@ object Future {
 
     def join[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Void] = collect(fs) map (x => Void)
 
-    def void: Future[Void] = Future.success(Void)
     def apply[T](obj: => Result[T])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(obj))
     def apply[T](underlying: ScalaFuture[Result[T]]): Future[T] = ConcreteFuture(underlying)
+    def apply(failure: Failure)(implicit callInfo: CallInfo = CallInfo.callSite): Future[Nothing] = FutureFail(failure)
+
+    def void: Future[Void] = Future.success(Void)
     def success[T](obj: T): Future[T] = FutureSuccess(obj)
     def fail(failure: Failure)(implicit callInfo: CallInfo = CallInfo.callSite): Future[Nothing] = FutureFail(failure)
-    def apply(failure: Failure)(implicit callInfo: CallInfo = CallInfo.callSite): Future[Nothing] = FutureFail(failure)
+    def failure(reason: Failure.Reason, message: String, cause: Option[Throwable] = None)(implicit callInfo: CallInfo = CallInfo.callSite): Future[Nothing] = FutureFail(Failure(reason, message, cause))
 
     def immediateExecutor = new ExecutionContext {
         def reportFailure(t: Throwable) {}
         def execute(runnable: Runnable) { runnable.run() }
+    }
+
+    private def handleThrowables(timeout: Option[Duration] = None): PartialFunction[Throwable, Failure] = {
+        case e: InterruptedException     => AwaitFailure(AwaitFailure.Interrupted, cause = Some(e))
+        case e: TimeoutException         => FutureTimeout(FutureTimeout.Await, timeout, Some(e))
+        case e: IllegalArgumentException => AwaitFailure(AwaitFailure.IllegalArgument, cause = Some(e))
+        case NonFatal(e)                 => AwaitFailure(AwaitFailure.Unknown, cause = Some(e))
     }
 }
 
