@@ -238,17 +238,17 @@ class ResultTest extends Fictus {
     }
 
     @Test
-    def onFail {
+    def onFailure {
         expect(io.invoke) times 3
 
         test {
-            failed onFail (_ => io.invoke)
-            Success(1) onFail (_ => io.invoke)
-            failed onFail (_ => io.invoke)
-            Success(2) onFail (_ => io.invoke)
-            rawFail onFail (_ => io.invoke)
+            failed onFailure (_ => io.invoke)
+            Success(1) onFailure (_ => io.invoke)
+            failed onFailure (_ => io.invoke)
+            Success(2) onFailure (_ => io.invoke)
+            rawFail onFailure (_ => io.invoke)
         }
-        Success(1) onFail (_ => io.invoke)
+        Success(1) onFailure (_ => io.invoke)
     }
 
     @Test

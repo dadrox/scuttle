@@ -35,14 +35,14 @@ object CommonFailuresResultTest {
 
         def userByFlatMap2(): Result[User] = {
             import com.dadrox.scuttle.result._
-            backend.fetchUser.flatMap { _.asResult(Failure(HttpStatus.NotFound, "User not found :(")) }
+            backend.fetchUser.flatMap { _.failOnNone(Failure(HttpStatus.NotFound, "User not found :(")) }
         }
 
         def userByForComprehension(): Result[User] = {
             import com.dadrox.scuttle.result._
             for {
                 userOpt <- backend.fetchUser
-                user <- userOpt.asResult(Failure(HttpStatus.NotFound, "User not found :("))
+                user <- userOpt.failOnNone(Failure(HttpStatus.NotFound, "User not found :("))
             } yield user
         }
     }

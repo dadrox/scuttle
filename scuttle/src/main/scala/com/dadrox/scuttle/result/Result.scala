@@ -15,6 +15,37 @@ object Result {
             case Seq()           => Success(results.flatMap(_.success()))
         }
     }
+
+    implicit class AugmentedResultOption[S](it: Result[Option[S]]) {
+        def failOnNone(failure: Failure): Result[S] = it flatMap {
+            case Some(it) => Success(it)
+            case None     => failure
+        }
+    }
+
+    implicit def resultToFuture[S](it: Result[S]) = it match {
+        case Success(s) => Future.success(s)
+        case f: Failure => Future.fail(f)
+    }
+
+    implicit class AugmentedResult[S](it: Result[S]) {
+        def asFuture: Future[S] = it match {
+            case Success(s) => Future.success(s)
+            case f: Failure => Future.fail(f)
+        }
+    }
+
+    implicit class AugmentedSuccess[S](it: Success[S]) {
+        def asFuture: Future[S] = it match {
+            case Success(s) => Future.success(s)
+        }
+    }
+
+    implicit class AugmentedFailure[S](it: Failure) {
+        def asFuture: Future[S] = it match {
+            case f: Failure => Future.fail(f)
+        }
+    }
 }
 
 /** A response monad that carries detailed failure data.
@@ -87,12 +118,17 @@ sealed abstract class Result[+S] { self =>
         case _          => default
     }
 
+    final def onComplete(f: Result[S] => Unit): Result[S] = {
+        f(this)
+        this
+    }
+
     final def onSuccess(f: S => Unit): Result[S] = {
         foreach(f)
         this
     }
 
-    final def onFail(f: Failure => Unit): Result[S] = {
+    final def onFailure(f: Failure => Unit): Result[S] = {
         failure.foreach(f)
         this
     }
@@ -124,7 +160,7 @@ object Failure {
     case object FilterPredicateFalse extends Reason
 }
 
-final case class Failure(reason: Failure.Reason, message: String, cause: Option[Throwable] = None)(implicit val callInfo: CallInfo = CallInfo.callSite) extends Result[Nothing] {
+final case class Failure(reason: Failure.Reason, message: String, cause: Option[Throwable] = None)(implicit callInfo: CallInfo = CallInfo.callSite) extends Result[Nothing] {
     override val name = "Failure"
     override lazy val toString = s"Failure($reason, $message, $cause): $callInfo"
 }

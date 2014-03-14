@@ -107,7 +107,7 @@ object Future {
     implicit class AugmentedFutureOption[A](future: Future[Option[A]])(implicit ec: ExecutionContext) {
         def failOnNone(failure: Failure) = future flatMap {
             case Some(it) => Future.success(it)
-            case None     => failure
+            case None     => Future(failure)
         }
     }
 
