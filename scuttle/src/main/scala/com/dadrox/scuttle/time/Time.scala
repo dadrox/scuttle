@@ -93,4 +93,5 @@ class FakeTimeInstance extends TimeSource {
 
     def +(delta: Duration) = add(delta)
     def add(delta: Duration) = current.set(now.milliseconds + delta.milliseconds)
+    override def toString = Time.defaultFormat.format(now)
 }
