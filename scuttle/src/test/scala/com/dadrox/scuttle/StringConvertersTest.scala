@@ -341,4 +341,10 @@ class StringConvertersTest extends org.fictus.Fictus {
         "1234".pad.right.zero(3) mustEqual "1234"
         "abc".pad.right.zero(6) mustEqual "abc000"
     }
+
+    @Test
+    def horizontal_rule {
+        "z" hr 3 mustEqual "zzz"
+        hr("=-", 2) mustEqual "=-=-"
+    }
 }

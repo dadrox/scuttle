@@ -2,6 +2,8 @@ package com.dadrox.scuttle
 
 package object string {
 
+    def hr(c: String, width: Int): String = c * width
+
     object IsInt {
         def unapply(s: String): Option[Int] = s.asInt
     }
@@ -109,5 +111,7 @@ package object string {
                 def zero(width: Int): String = apply(width, '0')
             }
         }
+
+        def hr(width: Int): String = string.hr(s, width)
     }
 }
