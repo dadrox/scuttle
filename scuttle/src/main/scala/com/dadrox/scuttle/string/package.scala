@@ -1,5 +1,6 @@
 package com.dadrox.scuttle
 
+import com.github.lalyos.jfiglet.FigletFont
 package object string {
 
     def hr(c: String, width: Int): String = c * width
@@ -113,5 +114,9 @@ package object string {
         }
 
         def hr(width: Int): String = string.hr(s, width)
+
+        def figlet = FigletFont.convertOneLine(s.replaceAll("""(?m)\r?\n""", " "))
+            .replaceAll("""(?m)^[ \t]+\r?\n""", "")
+            .replaceAll("""(?m)^\r?\n$""", "")
     }
 }

@@ -29,6 +29,7 @@ object Settings extends Version {
       testListeners <+= target map (t => new com.dadrox.sbt.test.reports.Xml(t getName)),
       libraryDependencies in ThisBuild ++= Seq(
           "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+          "com.github.lalyos" % "jfiglet" % "0.0.2",
           "junit" % "junit" % "4.11" % "test->default",
           "org.fictus" %% "fictus" % "0.9.3" % "test",
           "com.dadrox" % "sbt-junit" % "0.3.1" % "test")
