@@ -7,6 +7,7 @@ object Time extends TimeSource
 case class Time(milliseconds: Long) extends TimeInstance[Time] {
     override val ops = Time
     override lazy val toString = Time.defaultFormat.format(this)
+    def toString(timeZone: String) = Time.defaultFormat.format(this, timeZone)
 }
 
 trait TimeSource extends DurationSource[Time] {
@@ -38,6 +39,7 @@ trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
 
     /** Formats the Time to UTC */
     def format(pattern: String): String = new TimeFormat(pattern).format(this)
+    def format(pattern: String, timeZone: String): String = new TimeFormat(pattern).format(this, timeZone)
 
     def since(when: A): Duration = this - when
     def until(when: A): Duration = when - this
@@ -55,13 +57,16 @@ trait TimeInstance[A <: TimeInstance[A]] extends DurationInstance[A] {
 }
 
 class TimeFormat(pattern: String) {
-    private def utcFormat = {
+    private def utcFormat = format("UTC")
+
+    private def format(timeZone: String) = {
         val format = new java.text.SimpleDateFormat(pattern)
-        format.setTimeZone(java.util.TimeZone.getTimeZone("UTC"))
+        format.setTimeZone(java.util.TimeZone.getTimeZone(timeZone))
         format
     }
 
     def format[A <: TimeInstance[A]](time: TimeInstance[A]): String = utcFormat.format(time.toDate)
+    def format[A <: TimeInstance[A]](time: TimeInstance[A], timeZone: String): String = format(timeZone).format(time.toDate)
 
     // TODO throws exceptions
     def parse(date: String): Time = Time.fromDate(utcFormat.parse(date))
