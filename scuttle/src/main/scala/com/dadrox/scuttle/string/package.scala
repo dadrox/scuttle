@@ -115,6 +115,18 @@ package object string {
 
         def hr(width: Int): String = string.hr(s, width)
 
+        def framed(frame: Char): String = {
+            val lines = s.lines.toVector
+            val maxLineLength = lines.map(_.length()).max
+            val hr = frame.toString * (maxLineLength + 4)
+            s"""
+            |$hr
+            |${lines.map(line => s"$frame ${line.pad.right(maxLineLength, ' ')} $frame").mkString("\n")}
+            |$hr""".stripMargin
+        }
+
+        lazy val framed: String = framed('*')
+
         def figlet = FigletFont.convertOneLine(s.replaceAll("""(?m)\r?\n""", " "))
             .replaceAll("""(?m)^[ \t]+\r?\n""", "")
             .replaceAll("""(?m)^\r?\n$""", "")
