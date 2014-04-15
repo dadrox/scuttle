@@ -202,28 +202,60 @@ class FutureTest extends Fictus {
     }
 
     @Test
-    def collect_success {
+    def instance_collect_success {
+        FutureSuccess(3).collect {
+            case Success(it) => Success(it.toString)
+            case f           => Success("0")
+        }.await mustEqual Success("3")
+    }
+
+    @Test
+    def instance_collect_failure {
+        failable.collectFlat {
+            case Success(it) => Success(it.toString)
+            case f           => Success("0")
+        }.await mustEqual Success("0")
+    }
+
+    @Test
+    def instance_collectFlat_success {
+        FutureSuccess(3).collectFlat {
+            case Success(it) => FutureSuccess(it.toString)
+            case f           => FutureSuccess("0")
+        }.await mustEqual Success("3")
+    }
+
+    @Test
+    def instance_collectFlat_failure {
+        failable.collectFlat {
+            case Success(it) => FutureSuccess(it.toString)
+            case f           => FutureSuccess("0")
+        }.await mustEqual Success("0")
+    }
+
+    @Test
+    def object_collect_success {
         val fs = Vector(FutureSuccess(3), FutureSuccess(4))
         Future.collect(fs).await mustEqual Success(Seq(3, 4))
     }
 
     @Test
-    def collect_fail {
+    def object_collect_fail {
         val fs: Seq[Future[Int]] = Vector(FutureSuccess(3), FutureFail(failable))
         Future.collect(fs).await mustEqual failable
     }
 
-//    @Test
-//    def collectAll_success {
-//        val fs = Vector(FutureSuccess(3), FutureSuccess(4))
-//        Future.collectAll(fs).await mustEqual Success(Seq(Success(3), Success(4)))
-//    }
-//
-//    @Test
-//    def collectAll_fail {
-//        val fs: Seq[Future[Int]] = Vector(FutureSuccess(3), FutureFail(failable))
-//        Future.collectAll(fs).await mustEqual Success(Seq(Success(3), failable))
-//    }
+    //    @Test
+    //    def collectAll_success {
+    //        val fs = Vector(FutureSuccess(3), FutureSuccess(4))
+    //        Future.collectAll(fs).await mustEqual Success(Seq(Success(3), Success(4)))
+    //    }
+    //
+    //    @Test
+    //    def collectAll_fail {
+    //        val fs: Seq[Future[Int]] = Vector(FutureSuccess(3), FutureFail(failable))
+    //        Future.collectAll(fs).await mustEqual Success(Seq(Success(3), failable))
+    //    }
 
     @Test
     def join_success {

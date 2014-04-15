@@ -31,7 +31,11 @@ trait Future[+T] {
 
     def underlying: ScalaFuture[Result[T]]
 
+    def collect[U](handle: PartialFunction[Result[T], Result[U]])(implicit ec: ExecutionContext): Future[U] =
+        ConcreteFuture(underlying.map { handle(_) })
 
+    def collectFlat[U](handle: PartialFunction[Result[T], Future[U]])(implicit ec: ExecutionContext): Future[U] =
+        ConcreteFuture(underlying.flatMap { handle(_).underlying })
 
     final def flatMap[U](f: T => Future[U])(implicit ec: ExecutionContext): Future[U] = ConcreteFuture {
         underlying.flatMap {
@@ -116,43 +120,43 @@ object Future {
     // TODO firstOf (select), etc?
     // TODO add filter, which only keep successes and disposes of failures
 
-//    // TODO consider renaming to collect someday >:(
-//    def collectAll[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Seq[Result[A]]] = {
-//        import scala.collection.mutable
-//
-//        fs match {
-//            case Seq() => FutureSuccess(Seq())
-//            case results =>
-//                val p = Promise[Result[Seq[Result[A]]]]
-//
-//                val results = new AtomicReferenceArray[Result[A]](fs.size)
-//                val count = new AtomicInteger(fs.size)
-//                val resultsArray = new mutable.ArrayBuffer[Result[A]](fs.size)
-//
-//                def finish =
-//                    if (count.decrementAndGet() <= 0) {
-//                        for (j <- 0 until fs.size) resultsArray += results.get(j)
-//                        p.success(Success(resultsArray))
-//                    }
-//
-//                for (i <- 0 until fs.size) {
-//                    val f = fs(i)
-//                    f.underlying.andThen {
-//                        case ScalaSuccess(Success(s)) =>
-//                            results.set(i, Success(s))
-//                            finish
-//                        case ScalaSuccess(fd: Failure) =>
-//                            results.set(i, fd)
-//                            finish
-//                        case ScalaFailure(f) =>
-//                            results.set(i, handleThrowables()(f))
-//                            finish
-//                    }
-//                }
-//
-//                ConcreteFuture(p.future)
-//        }
-//    }
+    //    // TODO consider renaming to collect someday >:(
+    //    def collectAll[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Seq[Result[A]]] = {
+    //        import scala.collection.mutable
+    //
+    //        fs match {
+    //            case Seq() => FutureSuccess(Seq())
+    //            case results =>
+    //                val p = Promise[Result[Seq[Result[A]]]]
+    //
+    //                val results = new AtomicReferenceArray[Result[A]](fs.size)
+    //                val count = new AtomicInteger(fs.size)
+    //                val resultsArray = new mutable.ArrayBuffer[Result[A]](fs.size)
+    //
+    //                def finish =
+    //                    if (count.decrementAndGet() <= 0) {
+    //                        for (j <- 0 until fs.size) resultsArray += results.get(j)
+    //                        p.success(Success(resultsArray))
+    //                    }
+    //
+    //                for (i <- 0 until fs.size) {
+    //                    val f = fs(i)
+    //                    f.underlying.andThen {
+    //                        case ScalaSuccess(Success(s)) =>
+    //                            results.set(i, Success(s))
+    //                            finish
+    //                        case ScalaSuccess(fd: Failure) =>
+    //                            results.set(i, fd)
+    //                            finish
+    //                        case ScalaFailure(f) =>
+    //                            results.set(i, handleThrowables()(f))
+    //                            finish
+    //                    }
+    //                }
+    //
+    //                ConcreteFuture(p.future)
+    //        }
+    //    }
 
     // TODO rename this to collectUntilFailure ?
     def collect[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Seq[A]] = {
