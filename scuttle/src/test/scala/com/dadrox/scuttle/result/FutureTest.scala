@@ -213,17 +213,17 @@ class FutureTest extends Fictus {
         Future.collect(fs).await mustEqual failable
     }
 
-    @Test
-    def schmollect_success {
-        val fs = Vector(FutureSuccess(3), FutureSuccess(4))
-        Future.collectAll(fs).await mustEqual Success(Seq(Success(3), Success(4)))
-    }
-
-    @Test
-    def schmollect_fail {
-        val fs: Seq[Future[Int]] = Vector(FutureSuccess(3), FutureFail(failable))
-        Future.collectAll(fs).await mustEqual Success(Seq(Success(3), failable))
-    }
+//    @Test
+//    def collectAll_success {
+//        val fs = Vector(FutureSuccess(3), FutureSuccess(4))
+//        Future.collectAll(fs).await mustEqual Success(Seq(Success(3), Success(4)))
+//    }
+//
+//    @Test
+//    def collectAll_fail {
+//        val fs: Seq[Future[Int]] = Vector(FutureSuccess(3), FutureFail(failable))
+//        Future.collectAll(fs).await mustEqual Success(Seq(Success(3), failable))
+//    }
 
     @Test
     def join_success {
