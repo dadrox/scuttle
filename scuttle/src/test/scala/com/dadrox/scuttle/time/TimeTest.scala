@@ -22,6 +22,8 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
 
     @Test
     def date_parsing {
+        Time.parse("yyyy-MM-dd'T'HH:mm:ss.SSSZ", "2013-05-20T12:00:00.000-0600") mustEqual Some(Now + 6.hours)
+
         Time.parse("MM/dd/yyyy HH:mm:ss Z", "5/20/2013 12:00:00 -0600") mustEqual Some(Now + 6.hours)
         Time.parse("MM/dd/yyyy HH:mm:ss", "5/20/2013 12:00:00 -0600") mustEqual Some(Now)
 
