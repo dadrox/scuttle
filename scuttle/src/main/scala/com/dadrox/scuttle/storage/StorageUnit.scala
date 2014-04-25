@@ -13,7 +13,7 @@ object StorageUnit extends Enum {
     val Petabyte = EnumVal("petabyte", "PB", 10, 1000L * 1000 * 1000 * 1000 * 1000)
     val Exabyte = EnumVal("exabyte", "EB", 10, 1000L * 1000 * 1000 * 1000 * 1000 * 1000)
 
-    val ByteBase2 = EnumVal("byte", "B", 2, 1)
+    val ByteBase2 = EnumVal("byte2", "B", 2, 1)
     val Kibibyte = EnumVal("kibibyte", "KiB", 2, 1024L)
     val Mebibyte = EnumVal("mebibyte", "MiB", 2, 1024L * 1024)
     val Gibibyte = EnumVal("gibibyte", "GiB", 2, 1024L * 1024 * 1024)

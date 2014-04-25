@@ -19,7 +19,8 @@ trait Enum {
         val oldVec = get
         val newVec = oldVec :+ newVal
 
-        if ((get eq oldVec) && CAS(oldVec, newVec)) newVec.indexWhere(_ eq newVal)
+        if (oldVec.contains(newVal)) oldVec.indexWhere(_ eq newVal)
+        else if ((get eq oldVec) && CAS(oldVec, newVec)) newVec.indexWhere(_ eq newVal)
         else addEnumVal(newVal)
     }
 
