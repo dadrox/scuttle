@@ -67,7 +67,7 @@ class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
     }
 
     def stop() {
-        executor.shutdown()
+        executor.shutdownNow
     }
 }
 
