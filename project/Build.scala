@@ -3,7 +3,7 @@ import Keys._
 
 object Data {
   val majorVersion = "1.0"
-  val snapshot = true
+  val snapshot = false
   val org = "com.dadrox"
 }
 
