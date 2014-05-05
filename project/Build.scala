@@ -51,7 +51,7 @@ object ScuttleBuild extends Build {
     id = "root",
     base = file("."),
     settings = Settings.commonSettings() ++ DisablePublish,
-    aggregate = Seq(scuttle, scuttleTwitterConvert, scuttleJodaConvert, scuttleTimeZone))
+    aggregate = Seq(scuttle, scuttleMacros, scuttleTwitterConvert, scuttleJodaConvert, scuttleTimeZone))
 
   lazy val scuttle = Project(
     id = "scuttle",
