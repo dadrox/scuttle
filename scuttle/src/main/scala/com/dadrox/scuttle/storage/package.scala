@@ -5,7 +5,7 @@ import com.dadrox.scuttle.storage.Storage
 package object storage {
     implicit def IntToStorage(value: Int) = new LongToStorage(value)
 
-    implicit class LongToStorage(value: Long) {
+    implicit class LongToStorage(val value: Long) extends AnyVal {
 
         def bytes = Storage.fromBytes(value)
         def byte = bytes

@@ -40,7 +40,7 @@ package object string {
     private lazy val FloatingPoint = """([-+]?\d*\.?\d+)([eE][-+]?\d+)?""".r
 
     /** Provides various functions to convert a String to something else safely (i.e. Options, not exceptions) */
-    implicit class StringToSomethingElseConverters(s: String) {
+    implicit class StringToValueConverters(val s: String) extends AnyVal {
 
         def notNull: Option[String] = Option(s)
 
@@ -98,7 +98,9 @@ package object string {
             case b if (falses.exists(_.equalsIgnoreCase(b))) => Some(false)
             case _                                           => None
         }
+    }
 
+    implicit class StringWithUtilitiesConverters(s: String) {
         private def nullSafe = if (s == null) "" else s
         private def padIt(width: Int, padChar: Char) = padChar.toString * (width - nullSafe.length())
 
