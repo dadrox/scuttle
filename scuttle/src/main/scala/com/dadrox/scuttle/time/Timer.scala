@@ -77,8 +77,9 @@ class NamedThreadFactory(name: String, daemonThreads: Boolean = false) extends T
     val group = new ThreadGroup(Thread.currentThread().getThreadGroup(), name)
 
     def newThread(r: Runnable): Thread = {
-        val thread = new Thread(group, r, s"$name-${currentNumber.getAndIncrement()}")
-        thread.setName(name)
+        val numberedName = s"$name-${currentNumber.getAndIncrement()}"
+        val thread = new Thread(group, r, numberedName)
+        thread.setName(numberedName)
         thread.setDaemon(daemonThreads)
         thread
     }
