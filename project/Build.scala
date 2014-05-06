@@ -9,6 +9,7 @@ object Settings {
       scalaVersion in ThisBuild := "2.10.2",
       testFrameworks := Seq(testFramework),
       testListeners <+= target map (t => new com.dadrox.sbt.test.reports.Xml(t getName)),
+//      concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
       libraryDependencies in ThisBuild ++= Seq(
           "org.scala-lang" % "scala-reflect" % scalaVersion.value,
           "com.github.lalyos" % "jfiglet" % "0.0.2",

@@ -155,6 +155,7 @@ final case class Success[+S](value: S) extends Result[S] {
 object Failure {
     trait Reason
     trait Timeout extends Reason
+    case object CaughtException extends Reason
     case object NoReason extends Reason
 
     case object FilterPredicateFalse extends Reason

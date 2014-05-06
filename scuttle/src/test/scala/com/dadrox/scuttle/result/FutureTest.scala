@@ -91,7 +91,7 @@ class FutureTest extends Fictus {
         import concurrent.ExecutionContext.Implicits.global
 
         val timeout = 1.millisecond
-        Future {
+        Future.async {
             Thread.sleep(50)
             Success(7)
         }.await(timeout) mustMatch {
@@ -132,7 +132,7 @@ class FutureTest extends Fictus {
         import concurrent.ExecutionContext.Implicits.global
 
         val timeout = 1.millisecond
-        val future = Future {
+        val future = Future.async {
             Thread.sleep(100)
             Success(7)
         }
@@ -144,7 +144,7 @@ class FutureTest extends Fictus {
     @Test
     def within_noTimeout {
         import concurrent.ExecutionContext.Implicits.global
-        val future = Future(Success(7))
+        val future = Future.async(Success(7))
         future.within(10.millisecond).await() mustEqual Success(7)
     }
 

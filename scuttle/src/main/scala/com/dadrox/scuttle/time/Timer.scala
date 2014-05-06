@@ -39,6 +39,7 @@ class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
     def this(threads: Int = 2, name: String = "Timer", daemonThreads: Boolean = false) = this(threads, new NamedThreadFactory(name, daemonThreads))
 
     val executor = Executors.newScheduledThreadPool(threads, threadFactory)
+    implicit lazy val ec = ExecutionContext.fromExecutor(executor)
 
     def repeat(start: Time, period: Duration)(fn: => Unit): TimerTask = {
         val r = new Runnable { def run = fn }
@@ -85,6 +86,7 @@ class NamedThreadFactory(name: String, daemonThreads: Boolean = false) extends T
 
 class FakeTimer(timeSource: TimeSource) extends Timer {
     val tasks = ArrayBuffer[Task]()
+    implicit val ec = Future.immediateExecutor
 
     trait Task extends TimerTask {
         val canceled = new AtomicBoolean(false)
