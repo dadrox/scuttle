@@ -1,6 +1,6 @@
-val snapshot_? = false
+val snapshot_? = true
 
-val baseVersion = "1.1"
+val baseVersion = "1.2"
 
 organization in ThisBuild := "com.dadrox"
 
