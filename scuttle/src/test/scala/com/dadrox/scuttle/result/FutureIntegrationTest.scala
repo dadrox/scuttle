@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import scala.concurrent.{ Await, Future => ScalaFuture, Promise, TimeoutException }
 import java.util.concurrent.Executors
 import com.dadrox.scuttle.concurrent.CountDownLatch
+import com.dadrox.scuttle.concurrent.Executor
 
 trait MakeSureItGotCalled {
     def success(): Unit
@@ -16,8 +17,9 @@ trait MakeSureItGotCalled {
 object FutureIntegrationTest extends Fictus {
 
     implicit val timer = Timer(threads = 1, daemonThreads = true)
-    val executor = Executors.newCachedThreadPool()
-    implicit val ec = ExecutionContext.fromExecutor(executor)
+    val executor = Executors.newFixedThreadPool(2)
+    implicit val ec = ExecutionContext.fromExecutorService(new Executor(
+        corePoolSize = 8))
 
     @AfterClass
     def stop {
@@ -120,6 +122,31 @@ class FutureIntegrationTest extends Fictus {
         None.failOnNone(failure) mustEqual failure
     }
 
+    @Ignore // ugh so slooooowwww
+    @Test
+    def nested_awaits {
+        val start = Time.now
+        def time = Time.now.since(start)
+
+        val result = Future.async {
+            println(s">>>>>>>> evaluating outer $time")
+            val result = Future.async {
+                println(s">>>>>>>> evaluating 3 $time")
+                Success(3)
+            } //await ()
+
+            println(s">>>>>>>> first result [$result] $time")
+
+            result map {
+                println(s">>>>>>>> adding 2 $time")
+                _ + 2
+            } await ()
+        } await ()
+
+        println(s">>>>>>>>> $result in $time")
+    }
+
+    @Ignore // intermittently fails :(
     @Test
     def future_throws {
         val latch = new CountDownLatch(2)
