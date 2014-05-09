@@ -347,13 +347,4 @@ class StringConvertersTest extends org.fictus.Fictus {
         "z" hr 3 mustEqual "zzz"
         hr("=-", 2) mustEqual "=-=-"
     }
-
-    @Test
-    def figlet_works {
-        println("a b asdfghjkl".figlet)
-
-        println("""|abc
-                   |def""".stripMargin.figlet)
-    }
-
 }
