@@ -11,7 +11,7 @@ object Result {
 
     def apply[A](io: => A)(implicit failureHandler: PartialFunction[Throwable, Failure] = defaultFailureHandler): Result[A] = {
         try Success(io)
-        catch failureHandler
+        catch failureHandler orElse defaultFailureHandler
     }
 
     /** If the Results are all Successes, converts a seq of Result into a Result of seq.

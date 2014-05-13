@@ -1,6 +1,7 @@
 package com.dadrox.scuttle.result
 
 import org.fictus.Fictus
+import java.io.{FileNotFoundException, IOException}
 
 object MatchFail {
     def unapply(f: Result[_]) = f match {
@@ -342,11 +343,20 @@ class ResultTest extends Fictus {
     }
 
     @Test
-    def apply_failureHanlder {
+    def apply_failureHandler {
         Result { throw new Exception("failure") } {
             case e : Exception => Failure(Failure.NoReason, "no reason")
         } mustMatch {
             case Failure(Failure.NoReason, _, _) =>
+        }
+    }
+
+    @Test
+    def apply_failureHandler_fallbackToNonFatal {
+        Result { throw new IOException("io failure") } {
+            case e : FileNotFoundException => Failure(Failure.NoReason, "no reason")
+        } mustMatch {
+            case Failure(Failure.CaughtException, _, _) =>
         }
     }
 }
