@@ -1,9 +1,19 @@
 package com.dadrox.scuttle.result
 
 import com.dadrox.scuttle.CallInfo
-import com.dadrox.scuttle.time.Duration
+import scala.util.control.NonFatal
 
 object Result {
+
+    val defaultFailureHandler: PartialFunction[Throwable, Failure] = {
+        case NonFatal(e) => Failure(Failure.CaughtException, "Exception performing io", Some(e))
+    }
+
+    def apply[A](io: => A)(implicit failureHandler: PartialFunction[Throwable, Failure] = defaultFailureHandler): Result[A] = {
+        try Success(io)
+        catch failureHandler
+    }
+
     /** If the Results are all Successes, converts a seq of Result into a Result of seq.
      *  Otherwise, converts to the first Failure.
      */

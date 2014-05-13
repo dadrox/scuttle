@@ -317,4 +317,36 @@ class ResultTest extends Fictus {
     def callInfo {
         rawFail.toString mustContain ("ResultTest")
     }
+
+    @Test
+    def apply_throws {
+        val e = new Exception("failure")
+        Result { throw e } mustMatch {
+            case Failure(Failure.CaughtException, _, Some(`e`)) =>
+        }
+    }
+
+    @Test
+    def apply_fatalPropagates {
+        try {
+            Result { throw new OutOfMemoryError() }
+            fail("OutOfMemoryError expected")
+        } catch {
+            case e: OutOfMemoryError =>
+        }
+    }
+
+    @Test
+    def apply_success {
+        Result(3) mustEqual Success(3)
+    }
+
+    @Test
+    def apply_failureHanlder {
+        Result { throw new Exception("failure") } {
+            case e : Exception => Failure(Failure.NoReason, "no reason")
+        } mustMatch {
+            case Failure(Failure.NoReason, _, _) =>
+        }
+    }
 }
