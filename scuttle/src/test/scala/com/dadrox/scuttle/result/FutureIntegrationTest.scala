@@ -17,9 +17,8 @@ trait MakeSureItGotCalled {
 object FutureIntegrationTest extends Fictus {
 
     implicit val timer = Timer(threads = 1, daemonThreads = true)
-    val executor = Executors.newFixedThreadPool(2)
-    implicit val ec = ExecutionContext.fromExecutorService(new Executor(
-        corePoolSize = 8))
+    val executor = Executor.forkJoin()
+    implicit val ec = ExecutionContext.fromExecutorService(executor)
 
     @AfterClass
     def stop {
@@ -65,10 +64,11 @@ class FutureIntegrationTest extends Fictus {
         }
 
         val start = Time.now
+        val failThreshold = 300.ms
         future.within(100 ms).await() mustMatch {
             case Failure(FutureTimeout.Underlying, _, _) =>
                 val done = Time.now.since(start)
-                if (done > 200.ms) fail(s"Should have timed out in 100 ms, but took $done")
+                if (done > failThreshold) fail(s"Should have timed out in $failThreshold, but took $done")
         }
     }
 
@@ -153,7 +153,6 @@ class FutureIntegrationTest extends Fictus {
 
         val scalaFuture = ScalaFuture {
             throw new RuntimeException("EAT IT")
-            Success(3)
         }
 
         makeSureItGotCalled.failure
