@@ -1,5 +1,6 @@
 package com.dadrox.scuttle.time
 
+import com.dadrox.scuttle.concurrent.NamedThreadFactory
 import com.dadrox.scuttle.result._
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
@@ -69,20 +70,6 @@ class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
 
     def stop() {
         executor.shutdownNow
-    }
-}
-
-@deprecated("Use com.dadrox.scuttle.concurrent.NamedThreadFactory. Just a different package.", "20140515")
-class NamedThreadFactory(name: String, daemonThreads: Boolean = false) extends ThreadFactory {
-    val currentNumber = new AtomicInteger(1)
-    val group = new ThreadGroup(Thread.currentThread().getThreadGroup(), name)
-
-    def newThread(r: Runnable): Thread = {
-        val numberedName = s"$name-${currentNumber.getAndIncrement()}"
-        val thread = new Thread(group, r, numberedName)
-        thread.setName(numberedName)
-        thread.setDaemon(daemonThreads)
-        thread
     }
 }
 
