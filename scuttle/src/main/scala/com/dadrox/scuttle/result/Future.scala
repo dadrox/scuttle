@@ -111,7 +111,7 @@ trait Future[+T] {
 object Future {
 
     implicit class AugmentedFutureOption[A](future: Future[Option[A]])(implicit ec: ExecutionContext) {
-        def failOnNone(failure: Failure) = future flatMap {
+        def failOnNone(failure: Failure): Future[A] = future flatMap {
             case Some(it) => Future.success(it)
             case None     => Future(failure)
         }

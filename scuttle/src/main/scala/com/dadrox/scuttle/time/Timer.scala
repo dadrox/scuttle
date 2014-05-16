@@ -72,6 +72,7 @@ class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
     }
 }
 
+@deprecated("Use com.dadrox.scuttle.concurrent.NamedThreadFactory. Just a different package.", "20140515")
 class NamedThreadFactory(name: String, daemonThreads: Boolean = false) extends ThreadFactory {
     val currentNumber = new AtomicInteger(1)
     val group = new ThreadGroup(Thread.currentThread().getThreadGroup(), name)
