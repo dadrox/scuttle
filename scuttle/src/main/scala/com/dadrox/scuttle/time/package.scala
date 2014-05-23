@@ -6,7 +6,7 @@ import com.dadrox.scuttle.time.{ Duration, Time }
 package object time {
     implicit def IntToDuration(value: Int) = new LongToDuration(value)
 
-    implicit class LongToDuration(val value: Long) extends AnyVal {
+    implicit class LongToDuration(value: Long) {
         def milliseconds = Duration.fromMilliseconds(value)
         def millisecond = milliseconds
         def millis = milliseconds
@@ -29,19 +29,19 @@ package object time {
         def wk = weeks
     }
 
-    implicit class JavaDateToScuttle(val date: java.util.Date) extends AnyVal {
+    implicit class JavaDateToScuttle(date: java.util.Date) {
         def asScuttle: Time = Time.fromDate(date)
     }
 
-    implicit class ScuttleTimeToJava(val time: Time) extends AnyVal {
+    implicit class ScuttleTimeToJava(time: Time) {
         def asJava: java.util.Date = time.toDate
     }
 
-    implicit class ScalaDurationToScuttle(val duration: ScalaDuration) extends AnyVal {
+    implicit class ScalaDurationToScuttle(duration: ScalaDuration) {
         def asScuttle: Duration = Duration.fromMilliseconds(duration.toMillis)
     }
 
-    implicit class ScuttleDurationToScala(val duration: Duration) extends AnyVal {
+    implicit class ScuttleDurationToScala(duration: Duration) {
         def asScala: ScalaDuration = ScalaDuration(duration.inMilliseconds, scala.concurrent.duration.MILLISECONDS)
     }
 }

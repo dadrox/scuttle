@@ -39,7 +39,7 @@ package object string {
     private lazy val FloatingPoint = """([-+]?\d*\.?\d+)([eE][-+]?\d+)?""".r
 
     /** Provides various functions to convert a String to something else safely (i.e. Options, not exceptions) */
-    implicit class StringToValueConverters(val s: String) extends AnyVal {
+    implicit class StringToValueConverters(s: String) {
 
         def notNull: Option[String] = Option(s)
 
@@ -50,7 +50,7 @@ package object string {
 
         def notBlank: Option[String] = s.notEmpty.flatMap(_ => s.trim.notEmpty)
 
-        private def asInteger(): Option[BigInt] = s match {
+        private def asInteger(): Option[BigInt] = s.notBlank flatMap {
             case Integer("-", i)     => Some(BigInt("-" + i))
             case Integer("+" | _, i) => Some(BigInt(i))
             case _                   => None
@@ -76,7 +76,7 @@ package object string {
             case _                                               => None
         }
 
-        def asFloatingPoint(): Option[BigDecimal] = s match {
+        def asFloatingPoint(): Option[BigDecimal] = s.notBlank flatMap {
             case FloatingPoint(i, null) => Some(BigDecimal(i))
             case FloatingPoint(i, e)    => Some(BigDecimal(i + e.toUpperCase()))
             case miss                   => None

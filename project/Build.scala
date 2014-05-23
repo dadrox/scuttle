@@ -10,10 +10,17 @@ object Settings {
       testFrameworks := Seq(testFramework),
       testListeners <+= target map (t => new com.dadrox.sbt.test.reports.Xml(t getName)),
 //      concurrentRestrictions in Global += Tags.limit(Tags.Test, 1),
+      scalacOptions in Compile ++= Seq(
+        "-feature",
+        "-deprecation",
+        "-language:implicitConversions",
+        "-language:postfixOps",
+        "-language:higherKinds",
+        "-language:reflectiveCalls"),
       libraryDependencies in ThisBuild ++= Seq(
           "org.scala-lang" % "scala-reflect" % scalaVersion.value,
           "junit" % "junit" % "4.11" % "test->default",
-          "org.fictus" %% "fictus" % "0.9.3" % "test",
+          "org.fictus" %% "fictus" % "0.9.6-SNAPSHOT" % "test",
           "com.dadrox" % "sbt-junit" % "0.3.1" % "test")
     )
   }
@@ -24,7 +31,7 @@ object ScuttleBuild extends Build {
   object V {
     val Joda = "2.1"
     val Olson = "2013c"
-    val TwitterUtil = "6.3.8"
+    val TwitterUtil = "6.16.0"
   }
 
   val DisablePublish = Seq(publish := (), publishLocal := ())
