@@ -1,4 +1,4 @@
-val snapshot_? = true
+val snapshot_? = false
 
 val baseVersion = "1.3"
 
