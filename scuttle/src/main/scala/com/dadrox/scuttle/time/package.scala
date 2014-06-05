@@ -1,7 +1,7 @@
 package com.dadrox.scuttle
 
-import scala.concurrent.duration.{ Duration => ScalaDuration }
 import com.dadrox.scuttle.time.{ Duration, Time }
+import scala.concurrent.duration.{ Duration => ScalaDuration, FiniteDuration => ScalaFiniteDuration }
 
 package object time {
     implicit def IntToDuration(value: Int) = new LongToDuration(value)
@@ -41,7 +41,19 @@ package object time {
         def asScuttle: Duration = Duration.fromMilliseconds(duration.toMillis)
     }
 
+    implicit class ScuttleFiniteDurationToScala(duration: FiniteDuration) {
+        def asScala: ScalaFiniteDuration = ScalaFiniteDuration(duration.inMilliseconds, scala.concurrent.duration.MILLISECONDS)
+    }
+
     implicit class ScuttleDurationToScala(duration: Duration) {
-        def asScala: ScalaDuration = ScalaDuration(duration.inMilliseconds, scala.concurrent.duration.MILLISECONDS)
+        def asScala: ScalaFiniteDuration = ScalaFiniteDuration(duration.inMilliseconds, scala.concurrent.duration.MILLISECONDS)
+    }
+
+    implicit class ScalaInfToScuttle(duration: ScalaDuration.Infinite) {
+        def asScuttle: Inf = Duration.Infinite
+    }
+
+    implicit class ScuttleInfinityToScala(duration: Inf) {
+        def asScala: ScalaDuration = ScalaDuration.Inf
     }
 }

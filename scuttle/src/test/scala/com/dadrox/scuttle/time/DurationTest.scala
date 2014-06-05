@@ -25,9 +25,8 @@ class DurationTest extends DurationSourceTestBase(Duration) with org.fictus.Fict
         (scalaDuration: Duration) mustEqual scuttleDuration
         (scuttleDuration: scala.concurrent.duration.Duration) mustEqual scalaDuration
 
-        shouldThrow[IllegalArgumentException] {
-            (ScalaDuration.Inf: Duration) mustEqual Duration.Infinite
-        }
+        (ScalaDuration.Inf: Duration) mustEqual Duration.Infinite
+        (Duration.Infinite: ScalaDuration) mustEqual ScalaDuration.Inf
     }
 
     @Test
@@ -43,10 +42,13 @@ class DurationTest extends DurationSourceTestBase(Duration) with org.fictus.Fict
         scalaFiniteDuration.asScuttle mustEqual scuttleDuration
         scalaDuration.asScuttle mustEqual scuttleDuration
         scuttleDuration.asScala mustEqual scalaDuration
+        scuttleDuration.asScala mustEqual scalaFiniteDuration
 
-        shouldThrow[IllegalArgumentException] {
-            ScalaDuration.Inf.asScuttle mustEqual Duration.Infinite
-        }
+        def it(t: FiniteDuration) = {}
+        it(scuttleDuration.asScala)
+
+        ScalaDuration.Inf.asScuttle mustEqual Duration.Infinite
+        Duration.Infinite.asScala mustEqual ScalaDuration.Inf
     }
 
     @Test
