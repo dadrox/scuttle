@@ -152,7 +152,12 @@ object Future {
 
     def join[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Void] = collect(fs) map (x => Void)
 
+    /** Performs an asynchronous operation. */
     def async[T](result: => Result[T])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(result))
+
+    /** Produces a constant Future for a value that is already computed. */
+    def value[T](result: => Result[T])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture.successful(result))
+
     def apply[T](underlying: ScalaFuture[Result[T]])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(underlying.recover {
         case NonFatal(e) => Failure(Failure.CaughtException, "", cause = Some(e))
     })
