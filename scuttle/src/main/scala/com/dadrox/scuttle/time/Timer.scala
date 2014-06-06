@@ -14,7 +14,7 @@ object Timer {
 
     case object FailedScheduledTask extends Failure.Reason
 
-    def apply(threads: Int = 2, name: String = "Timer", daemonThreads: Boolean = false) =
+    def apply(threads: Int = 2, name: String = "Timer", daemonThreads: Boolean = true) =
         new PooledTimer(threads, name, daemonThreads)
 
     def integrationTestTimer = new PooledTimer(threads = 1, name = "TestTimer", daemonThreads = true)
@@ -37,7 +37,7 @@ trait Timer {
 }
 
 class PooledTimer(threads: Int, threadFactory: ThreadFactory) extends Timer {
-    def this(threads: Int = 2, name: String = "Timer", daemonThreads: Boolean = false) = this(threads, new NamedThreadFactory(name, daemonThreads))
+    def this(threads: Int = 2, name: String = "Timer", daemonThreads: Boolean = true) = this(threads, new NamedThreadFactory(name, daemonThreads))
 
     val executor = Executors.newScheduledThreadPool(threads, threadFactory)
     implicit lazy val ec = ExecutionContext.fromExecutor(executor)
