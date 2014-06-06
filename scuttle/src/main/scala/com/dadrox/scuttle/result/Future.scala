@@ -156,7 +156,7 @@ object Future {
     def async[T](result: => Result[T])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(result))
 
     /** Produces a constant Future for a value that is already computed. */
-    def value[T](result: => Result[T])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture.successful(result))
+    def value[T](result: => Result[T]): Future[T] = ConcreteFuture(ScalaFuture.successful(result))
 
     def apply[T](underlying: ScalaFuture[Result[T]])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(underlying.recover {
         case NonFatal(e) => Failure(Failure.CaughtException, "", cause = Some(e))
