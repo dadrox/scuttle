@@ -26,9 +26,6 @@ object Result {
         }
     }
 
-    @deprecated("DO NOT USE!", "20140611")
-    implicit def resultToFuture[S](it: Result[S]) = Future.value(it)
-
     implicit class AugmentedResultOption[S](it: Result[Option[S]]) {
         def failOnNone(failure: Failure): Result[S] = it flatMap {
             case Some(it) => Success(it)
