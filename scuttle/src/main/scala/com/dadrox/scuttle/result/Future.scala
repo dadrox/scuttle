@@ -3,7 +3,7 @@ package com.dadrox.scuttle.result
 import java.util.concurrent.atomic.{ AtomicReferenceArray, AtomicInteger }
 import com.dadrox.scuttle.{ CallInfo, Enum }
 import com.dadrox.scuttle.time.{ Time, Timer, Duration }
-import scala.concurrent.{ Await, Future => ScalaFuture, Promise, TimeoutException }
+import scala.concurrent.{ Await, Future => ScalaFuture, Promise, TimeoutException, _ }
 import scala.util.{ Success => ScalaSuccess, Failure => ScalaFailure }
 import scala.util.control.NonFatal
 
@@ -51,7 +51,7 @@ trait Future[+T] {
     final def foreach(fn: T => Unit)(implicit ec: ExecutionContext) = onSuccess(fn)
 
     final def filter(predicate: T => Boolean)(implicit ec: ExecutionContext): Future[T] = flatMap { r =>
-        if (predicate(r)) FutureSuccess(r) else Future(Failure(Failure.FilterPredicateFalse, s"filter predicated failed on $r"))
+        if (predicate(r)) FutureSuccess(r) else Future.failure(Failure.FilterPredicateFalse, s"filter predicated failed on $r")
     }
 
     final def withFilter(predicate: T => Boolean)(implicit ec: ExecutionContext): Future[T] = filter(predicate)
@@ -103,17 +103,18 @@ trait Future[+T] {
 
     def await(): Result[T] = await(Duration.fromDays(1))
 
-    def await(atMost: Duration): Result[T] =
+    def await(atMost: Duration): Result[T] = blocking {
         try Await.result(underlying, atMost.asScala)
         catch Future.handleThrowables()
+    }
 }
 
 object Future {
 
     implicit class AugmentedFutureOption[A](future: Future[Option[A]])(implicit ec: ExecutionContext) {
         def failOnNone(failure: Failure): Future[A] = future flatMap {
-            case Some(it) => Future.success(it)
-            case None     => Future(failure)
+            case Some(it) => Future.const(it)
+            case None     => Future.fail(failure)
         }
     }
 
@@ -153,18 +154,41 @@ object Future {
     def join[A](fs: Seq[Future[A]])(implicit ec: ExecutionContext): Future[Void] = collect(fs) map (x => Void)
 
     /** Performs an asynchronous operation. */
-    def async[T](result: => Result[T])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture(result))
+    def async[T](result: => Result[T])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(ScalaFuture {
+        try result catch {
+            case NonFatal(e) => Failure(Failure.CaughtException, s"Underlying value threw $e", Some(e))
+        }
+    })
+
+    /** Produces a constant Future for a Result that is already computed. */
+    def value[T](result: => Result[T]): Future[T] = try {
+        result match {
+            case Success(value)   => const(value)
+            case failure: Failure => Future.fail(failure)
+        }
+    } catch {
+        case NonFatal(e) => Future.failure(Failure.CaughtException, s"Underlying value threw $e", Some(e))
+    }
 
     /** Produces a constant Future for a value that is already computed. */
-    def value[T](result: => Result[T]): Future[T] = ConcreteFuture(ScalaFuture.successful(result))
+    def const[T](result: => T): Future[T] = try {
+        FutureSuccess(result)
+    } catch {
+        case NonFatal(e) => Future.failure(Failure.CaughtException, s"Underlying const value threw $e", Some(e))
+    }
 
     def apply[T](underlying: ScalaFuture[Result[T]])(implicit ec: ExecutionContext): Future[T] = ConcreteFuture(underlying.recover {
-        case NonFatal(e) => Failure(Failure.CaughtException, "", cause = Some(e))
+        case NonFatal(e) => Failure(Failure.CaughtException, s"Underlying Future threw $e", cause = Some(e))
     })
+
+    def void: Future[Void] = const(Void)
+
+    @deprecated("Use Future.value or Future.const", "20140611")
+    def success[T](obj: T): Future[T] = FutureSuccess(obj)
+
+    @deprecated("Use Future.fail or Future.failure", "20140611")
     def apply(failure: Failure)(implicit callInfo: CallInfo = CallInfo.callSite): Future[Nothing] = FutureFail(failure)
 
-    def void: Future[Void] = success(Void)
-    def success[T](obj: T): Future[T] = FutureSuccess(obj)
     def fail(failure: Failure)(implicit callInfo: CallInfo = CallInfo.callSite): Future[Nothing] = FutureFail(failure)
     def failure(reason: Failure.Reason, message: String, cause: Option[Throwable] = None)(implicit callInfo: CallInfo = CallInfo.callSite): Future[Nothing] = FutureFail(Failure(reason, message, cause))
 

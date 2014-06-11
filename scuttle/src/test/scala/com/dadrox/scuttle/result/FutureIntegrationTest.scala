@@ -100,14 +100,14 @@ class FutureIntegrationTest extends Fictus {
     def collectFlat {
         val future = Future.async(Success(3)) collectFlat {
             case Success(it)                               => Future.async(Success(it + 2))
-            case failure @ Failure(reason, message, cause) => failure
+            case failure @ Failure(reason, message, cause) => Future.fail(failure)
         }
         future.await() mustEqual Success(5)
     }
 
     @Test
     def flatten {
-        Future.success(Future.success(3)).flatten.await() mustEqual Success(3)
+        Future.const(Future.const(3)).flatten.await() mustEqual Success(3)
     }
 
     @Test

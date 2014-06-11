@@ -26,6 +26,9 @@ object Result {
         }
     }
 
+    @deprecated("DO NOT USE!", "20140611")
+    implicit def resultToFuture[S](it: Result[S]) = Future.value(it)
+
     implicit class AugmentedResultOption[S](it: Result[Option[S]]) {
         def failOnNone(failure: Failure): Result[S] = it flatMap {
             case Some(it) => Success(it)
@@ -33,21 +36,13 @@ object Result {
         }
     }
 
-    implicit def resultToFuture[S](it: Result[S]) = it match {
-        case Success(s) => Future.success(s)
-        case f: Failure => Future.fail(f)
-    }
-
     implicit class AugmentedResult[S](it: Result[S]) {
-        def asFuture: Future[S] = it match {
-            case Success(s) => Future.success(s)
-            case f: Failure => Future.fail(f)
-        }
+        def asFuture: Future[S] = Future.value(it)
     }
 
     implicit class AugmentedSuccess[S](it: Success[S]) {
         def asFuture: Future[S] = it match {
-            case Success(s) => Future.success(s)
+            case Success(s) => Future.const(s)
         }
     }
 

@@ -1,6 +1,6 @@
 val snapshot_? = true
 
-val baseVersion = "1.3.1"
+val baseVersion = "1.3.2"
 
 organization in ThisBuild := "com.dadrox"
 
