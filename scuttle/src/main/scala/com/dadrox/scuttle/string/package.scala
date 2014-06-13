@@ -1,5 +1,8 @@
 package com.dadrox.scuttle
 
+import com.dadrox.scuttle.time._
+import com.dadrox.scuttle.storage._
+
 package object string {
 
     def hr(c: String, width: Int): String = c * width
@@ -49,6 +52,9 @@ package object string {
         }
 
         def notBlank: Option[String] = s.notEmpty.flatMap(_ => s.trim.notEmpty)
+
+        def asMilliseconds(): Option[Duration] = s.asLong() map (_ milliseconds)
+        def asBytes(): Option[Storage] = s.asLong() map (_ bytes)
 
         private def asInteger(): Option[BigInt] = s.notBlank flatMap {
             case Integer("-", i)     => Some(BigInt("-" + i))
