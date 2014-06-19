@@ -29,6 +29,7 @@ trait TimeSource extends DurationSource[Time] {
         }
     }
 
+    private[time] val fullFormat = new TimeFormat("yyyyMMdd HH:mm:ss.SSS Z")
     private[time] val defaultFormat = new TimeFormat("yyyyMMdd HH:mm:ss Z")
 
     def at(date: String) = defaultFormat.parse(date)
@@ -98,5 +99,5 @@ class FakeTimeInstance extends TimeSource {
 
     def +(delta: Duration) = add(delta)
     def add(delta: Duration) = current.set(now.milliseconds + delta.milliseconds)
-    override def toString = Time.defaultFormat.format(now)
+    override def toString = Time.fullFormat.format(now)
 }
