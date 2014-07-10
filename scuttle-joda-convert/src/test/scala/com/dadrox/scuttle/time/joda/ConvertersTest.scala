@@ -2,7 +2,8 @@ package com.dadrox.scuttle.time.joda
 
 import org.fictus.Fictus
 import com.dadrox.scuttle.time._
-import org.joda.time.{ DateTime => JodaTime, Duration => JodaDuration }
+import org.joda.time.{ DateTime => JodaDateTime, Duration => JodaDuration }
+import org.joda.time.{ LocalDate, LocalDateTime }
 import org.joda.time.format.DateTimeFormat
 
 class ConvertersTest extends Fictus {
@@ -27,22 +28,38 @@ class ConvertersTest extends Fictus {
     }
 
     @Test
+    def jodaLocalDate_toScuttle {
+        val eleven = new LocalDateTime(2014, 1, 1, 23, 0)
+
+        eleven.toDateTime().asScuttle mustEqual Time.fromMilliseconds(1388642400000L)
+    }
+
+    @Test
+    def jodaLocalDate_toScuttle_conversion {
+        import com.dadrox.scuttle.time.joda.conversions.jodaTimeToScuttleTime
+        val eleven = new LocalDateTime(2014, 1, 1, 23, 0)
+
+        val time: Time = eleven.toDateTime()
+        time mustEqual Time.fromMilliseconds(1388642400000L)
+    }
+
+    @Test
     def scuttleTimeToJoda_conversion {
         import com.dadrox.scuttle.time.joda.conversions.scuttleTimeToJodaTime
 
-        val scuttle: JodaTime = Time.Epoch
-        val joda = new JodaTime(0)
+        val scuttle: JodaDateTime = Time.Epoch
+        val joda = new JodaDateTime(0)
 
         scuttle mustEqual joda
         joda mustEqual scuttle
     }
 
     @Test
-    def jodaTimeToScuttle_conversion {
+    def JodaDateTimeToScuttle_conversion {
         import com.dadrox.scuttle.time.joda.conversions.jodaTimeToScuttleTime
 
         val scuttle = Time.Epoch
-        val joda: Time = new JodaTime(0)
+        val joda: Time = new JodaDateTime(0)
 
         scuttle mustEqual joda
         joda mustEqual scuttle
@@ -73,7 +90,7 @@ class ConvertersTest extends Fictus {
     @Test
     def scuttleTimeToJoda_converter {
         val scuttle = Time.Epoch.asJoda
-        val joda = new JodaTime(0)
+        val joda = new JodaDateTime(0)
 
         scuttle mustEqual joda
         joda mustEqual scuttle
@@ -82,7 +99,7 @@ class ConvertersTest extends Fictus {
     @Test
     def jodaTimeToScuttle_converter {
         val scuttle = Time.Epoch
-        val joda = new JodaTime(0).asScuttle
+        val joda = new JodaDateTime(0).asScuttle
 
         scuttle mustEqual joda
         joda mustEqual scuttle

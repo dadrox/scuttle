@@ -178,4 +178,20 @@ class DurationTest extends DurationSourceTestBase(Duration) with org.fictus.Fict
         (Long.MinValue + 1).milliseconds mustEqual NegativeInfinity
         Long.MinValue.milliseconds mustEqual NegativeInfinity
     }
+
+    @Test
+    def floor {
+        61.minutes.floor(1 hour) mustEqual 1.hour
+        1.hour.floor(1 hour) mustEqual 1.hour
+        1.ms.floor(1 hour) mustEqual 0.ms
+        0.ms floor (1 hour) mustEqual 0.ms
+    }
+
+    @Test
+    def ceiling {
+        61.minutes.ceiling(1 hour) mustEqual 2.hours
+        1.hour.ceiling(1 hour) mustEqual 1.hour
+        1.ms.ceiling(1 hour) mustEqual 1.hour
+        0.ms ceiling (1 hour) mustEqual 0.ms
+    }
 }

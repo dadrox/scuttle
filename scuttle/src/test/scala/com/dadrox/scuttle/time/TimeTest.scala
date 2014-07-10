@@ -15,7 +15,7 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
 
     @Test
     def formatted {
-        Now.toString mustEqual "20130520 12:00:00 +0000"
+        Now.toString mustEqual "20130520 12:00:00.000 +0000"
         Now.toString("EST") mustEqual "20130520 07:00:00 -0500"
         Now.toString("America/Phoenix") mustEqual "20130520 05:00:00 -0700"
     }
@@ -38,7 +38,8 @@ class TimeTest extends DurationSourceTestBase(Time) with Fictus {
 
     @Test
     def at {
-        Time.at(Now.toString) mustEqual Now
+        Time.at(Now.toString(pattern = Time.defaultFormat)) mustEqual Now
+        Time.at(Now.toString, "yyyyMMdd HH:mm:ss.SSS") mustEqual Now
         Time at "20130520 12:00:00 -0000" mustEqual Now
         Time at "20130520 12:00:00 -0600" mustEqual Now + 6.hours
     }
